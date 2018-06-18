@@ -4,11 +4,19 @@ const process = require('process');
 const os = require('os');
 const colors = require('colors');
 const util = require('util');
+const fs = require('fs');
+const execSync = require('child_process').execSync;
 
 const { MSG, readConfig } = require('./src/common');
 const Dispatcher = require('./src/Dispatcher');
 
 const yargs = require('yargs')
+    .option('install', { describe: 'install claw as a service' })
+    .option('remove', { describe: 'remove the claw service' })
+    .option('start', { describe: 'start the claw service' })
+    .option('stop', { describe: 'stop the claw service' })
+    .option('status', { describe: 'status of the claw service' })
+    .option('run', { describe: 'run claw in online mode' })
     .option('id', { describe: 'set the worker id' })
     .option('user', { describe: 'run worker with another user' })
     .option('config', { describe: 'config YAML file path' })
@@ -19,7 +27,11 @@ const argv = yargs.argv;
 const configFromFile = !argv.config ? {} : readConfig(argv.config);
 let [config, redisOpts] = setupWorker(Object.assign( configFromFile, argv ));
 
-startWorker( config, redisOpts );
+if( config.run ) {
+
+    startWorker( config, redisOpts );
+
+}
 
 function setupWorker(config) {
 
@@ -144,3 +156,163 @@ async function startWorker(config) {
         }
     });
 }
+
+if ( config.remove ) {
+
+    removeService({ });
+}
+
+if ( config.install ) {
+
+    installService( {
+        id: config.id,
+        username: config.username,
+        password: config.password,
+        auth: config.auth
+    } );
+
+}
+
+if ( config.start ) {
+
+    actionService( 'start' );
+
+}
+
+if ( config.stop ) {
+
+    actionService( 'stop' );
+
+}
+
+if ( config.status ) {
+
+    actionService( 'status' );
+
+}
+
+function exec(command) {
+
+    var result = {};
+
+    try {
+
+        result.stdout = execSync(command).toString();
+        result.status = 0;
+        result.success = 1;
+
+    } catch( error ) {
+
+        result = error;
+        result.success = 0;
+
+    }
+
+    return result;
+
+}
+
+function isRoot() {
+
+    var isRoot = 0;
+
+    if( os.platform == 'linux' ) {
+
+        isRoot = process.getuid && process.getuid() === 0;
+
+    } else if( os.platform == 'win32' ) {
+
+        isRoot = exec('NET SESSION').success;
+
+    }
+
+    return isRoot;
+}
+
+function installService(options) {
+
+    const service = require ("os-service");
+    var programArgs = [];
+
+    if (options.id) {
+        programArgs.push("--id");
+        programArgs.push(options.id);
+    }
+
+    if (options.auth) {
+        programArgs.push("--auth");
+        programArgs.push(options.auth);
+    }
+
+    var installOptions = {
+        displayName: "claw",
+        programArgs: programArgs,
+        username: options.username,
+        password: options.password
+    };
+
+    if ( isRoot() ) {
+
+        service.add ("claw", installOptions, (error) => {
+
+            if (error)
+                console.trace(error);
+
+        });
+
+    } else {
+
+        console.log("Needs to be executed as root/Administrator user");
+
+    }
+
+}
+
+function removeService(options) {
+
+    const service = require ("os-service");
+
+    if ( isRoot() ) {
+
+        service.remove ("claw", (error) => {
+            if (error)
+                console.trace(error);
+        });
+
+    } else {
+
+        console.log("Needs to be executed as root/Administrator user");
+
+    }
+
+}
+
+function actionService(action) {
+
+    const service = require ("os-service");
+
+    if ( isRoot() ) {
+
+        if( os.platform == 'linux' ) {
+
+            var serviceActionResult;
+            serviceActionResult = exec('service claw ' + action);
+            serviceActionResult.success ? console.log(serviceActionResult.stdout)
+                : console.error(serviceActionResult.message);
+
+
+        } else if( os.platform == 'win32' ) {
+
+            serviceActionResult = exec(`net ${action} $service /y`);
+            serviceActionResult.success ? console.log(serviceActionResult.stdout)
+                : console.error(serviceActionResult.message);
+        }
+
+    } else {
+
+        console.log("Needs to be executed as root/Administrator user");
+
+    }
+
+}
+
