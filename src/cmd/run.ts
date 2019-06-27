@@ -9,7 +9,7 @@ module.exports = new class implements yargs.CommandModule {
     describe = 'Run the worker online';
 
     builder(args: yargs.Argv) {
-        commonOptions(args, 'verbose', 'api-key', 'url', 'workerid');
+        commonOptions(args, 'verbose', 'api-key', 'url', 'workerid', 'capabilities');
         return args;
     }
 
@@ -36,9 +36,15 @@ module.exports = new class implements yargs.CommandModule {
             }
 
             var disposePubSub = pubsub.subscribe(
-                ['worker.put_file', 'worker.get_file', 'worker.exec', 'worker.ready'],
+                [
+                    'worker.put_file',
+                    'worker.get_file',
+                    'worker.exec',
+                    'worker.eval',
+                    'worker.ready',
+                    'worker.capable'
+                ],
                 async (eventName, eventData, eventFind, oid) => {
-
                     app.debug('got message:', eventName, eventData);
 
                     try {
@@ -51,8 +57,10 @@ module.exports = new class implements yargs.CommandModule {
                         );
 
                         await dispatcher.process();
-                    } catch(error) {
-                        app.error(`error processing message ${eventName} (${oid}): ${error}`);
+                    } catch (error) {
+                        app.error(
+                            `error processing message ${eventName} (${oid}): ${error}`
+                        );
                     }
                 },
                 err => {

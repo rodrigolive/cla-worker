@@ -2,6 +2,7 @@ import app from '@claw/app';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as util from 'util';
+import * as vm from 'vm';
 
 import { MSG, length } from '@claw/common';
 import PubSub from '@claw/pubsub';
@@ -10,7 +11,13 @@ import { Writable } from 'stream';
 
 const fsAsync = {
     rename: util.promisify(fs.rename)
-}
+};
+
+type EvalResult = {
+    output: string;
+    error?: string;
+    ret?: any;
+};
 
 export default class Dispatcher {
     message: any;
@@ -42,6 +49,12 @@ export default class Dispatcher {
                 case 'worker.get_file':
                     await this.cmdGetFile(this.message);
                     break;
+                case 'worker.eval':
+                    await this.cmdEval(this.message);
+                    break;
+                case 'worker.capable':
+                    this.cmdCapable(this.message);
+                    break;
                 case 'worker.exec':
                     await this.cmdExec(this.message);
                     break;
@@ -72,12 +85,55 @@ export default class Dispatcher {
             rc: 99,
             output: err
         };
+
         this.result(result);
-        this.done();
+    }
+
+    cmdCapable({ capability }) {
+        const workerCapabilities: string[] = app.config.capabilities || [];
+
+        if (capability.every(_ => workerCapabilities.includes(_))) {
+            this.pubsub.publish('worker.capable.reply', {
+                oid: this.msgId,
+                workerid: this.pubsub.id,
+                capabilities: workerCapabilities
+            });
+        }
+    }
+
+    async cmdEval({ code, stash }) {
+        const { pubsub } = this;
+        let result: EvalResult = { output: '' };
+
+        const consoleWrapper = {
+            log: (...args) => {
+                args.forEach(_ => (result.output += _));
+                app.info('worker.eval log:', args);
+            }
+        };
+        const context = vm.createContext({
+            console: consoleWrapper,
+            fs,
+            ...stash
+        });
+
+        try {
+            result.ret = await vm.runInContext(code, context);
+        } catch (error) {
+            app.error(`worker.eval error: ${error}`);
+            result.error = error.toString();
+        }
+
+        app.debug('eval result', result);
+
+        pubsub.publish('worker.eval.done', {
+            oid: this.msgId,
+            ...result
+        });
     }
 
     cmdExec({ cmd }) {
-        const [cmdName, ...cmdArgs] = cmd;
+        const [cmdName, ...cmdArgs] = Array.isArray(cmd) ? cmd : [cmd];
         const cmdOpts: any = {};
 
         if (length(this.message.chdir)) cmdOpts.cwd = this.message.chdir;
@@ -94,6 +150,7 @@ export default class Dispatcher {
 
         const proc = spawn(cmdName, cmdArgs, cmdOpts).on('error', err => {
             let { message } = err;
+
             if (/ENOENT/.exec(message)) {
                 message = util.format(
                     "Could not run command '%s' with options: %s",
@@ -101,6 +158,7 @@ export default class Dispatcher {
                     JSON.stringify([cmdArgs, cmdOpts])
                 );
             }
+
             this.publishError(message);
         });
 
@@ -120,6 +178,7 @@ export default class Dispatcher {
                 rc: code,
                 output: output
             };
+
             this.result(result);
             this.done();
         });
@@ -176,37 +235,6 @@ export default class Dispatcher {
         }
     }
 
-    Old_cmdGetFile({ filepath }) {
-        let readStream = fs.createReadStream(filepath, {
-            highWaterMark: this.config.chunk_size
-        });
-
-        readStream.on('error', err => {
-            app.error(`Worker error reading from file ${filepath}:`, err);
-            this.publishError(err);
-        });
-
-        let bytes = 0;
-
-        fs.stat(filepath, (err, stat) => {
-            this.pubsub.publish(
-                `queue:${this.msgId}:file`,
-                JSON.stringify(stat)
-            );
-
-            readStream
-                .on('data', chunk => {
-                    var buf = Buffer.from(chunk).toString('base64');
-                    this.pubsub.publish(`queue:${this.msgId}:file`, buf);
-                    bytes += chunk.length;
-                })
-                .on('end', () => {
-                    this.result({ stat });
-                    this.done();
-                });
-        });
-    }
-
     async cmdPutFile({ filepath, filekey }) {
         const { pubsub } = this;
         const onError: Array<(err: Error) => void> = [];
@@ -247,8 +275,7 @@ export default class Dispatcher {
             });
 
             onError.push(err => {
-                if(fs.existsSync(tmpfile))
-                    fs.unlinkSync(tmpfile);
+                if (fs.existsSync(tmpfile)) fs.unlinkSync(tmpfile);
             });
 
             stream.on('finish', async () => {
@@ -260,7 +287,7 @@ export default class Dispatcher {
                         filepath
                     });
                     app.milestone(`put_file: wrote file ${filepath}`);
-                } catch(err) {
+                } catch (err) {
                     onError.forEach(ev => {
                         ev(err);
                     });
@@ -271,7 +298,8 @@ export default class Dispatcher {
                         error: lastError
                     });
                     app.error(
-                        `could not write file ${filepath} from temp file ${tmpfile}`, err
+                        `could not write file ${filepath} from temp file ${tmpfile}`,
+                        err
                     );
                 }
             });
@@ -284,61 +312,25 @@ export default class Dispatcher {
                 filepath,
                 error: err.toString()
             });
+
             onError.forEach(ev => {
                 ev(err);
             });
+
             app.error(err.toString());
         }
     }
 
-    Old_cmdPutFile() {
-        const { pubsub } = this;
-        const path = this.message.filepath;
-
-        var writeStream = fs.createWriteStream(path, { flags: 'w' });
-
-        writeStream.on('error', err => {
-            app.error('Stream error', err);
-            this.publishError(err);
+    async result(result) {
+        await this.pubsub.publish('worker.result', {
+            oid: this.msgId,
+            ...result
         });
-
-        let key = `queue:${this.msgId}:file`;
-
-        const readStream = new Writable({
-            objectMode: true,
-            write: (data, _, done) => {
-                let [key, msg] = data;
-
-                var buf = Buffer.from(msg, 'base64');
-
-                writeStream.write(buf);
-
-                fs.stat(path, (err, stat) => {
-                    this.result({ stat });
-                    this.done();
-                });
-
-                done();
-            }
-        });
-
-        readStream.on('error', err => {
-            app.error(
-                `Failed to get file for put_file command, key=${key}, error=${err}`
-            );
-        });
-
-        pubsub.pop(key, readStream);
     }
 
-    result(result) {
-        this.pubsub.publish(
-            `queue:${this.msgId}:result`,
-            JSON.stringify(result)
-        );
-    }
-
-    done() {
-        this.pubsub.publish(`queue:${this.msgId}:done`, '');
+    async done() {
+        await this.pubsub.publish('worker.done', {
+            oid: this.msgId
+        });
     }
 }
