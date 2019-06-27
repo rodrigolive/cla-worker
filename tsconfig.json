@@ -1,0 +1,21 @@
+{
+    "version": "0.1",
+    "compilerOptions": {
+        "target": "ESNext",
+        "lib": ["ESNext"],
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "outDir": "./dist",
+        "importHelpers": true,
+        "emitDecoratorMetadata": true,
+        "baseUrl": "src",
+        "rootDirs": ["src", "bin"],
+        "paths": {
+            "@claw/*": ["*"],
+            "@claw-test/*": ["../tests/*"],
+            "@root/*": ["../*"]
+        },
+        "experimentalDecorators": true,
+        "removeComments": true
+    }
+}
