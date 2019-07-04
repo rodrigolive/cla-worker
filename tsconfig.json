@@ -5,10 +5,11 @@
         "lib": ["ESNext"],
         "module": "commonjs",
         "moduleResolution": "node",
-        "outDir": "./dist",
+        "outDir": "./dist/",
         "importHelpers": true,
         "emitDecoratorMetadata": true,
         "baseUrl": "src",
+        "rootDir": ".",
         "rootDirs": ["src", "bin"],
         "paths": {
             "@claw/*": ["*"],
