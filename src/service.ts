@@ -1,6 +1,7 @@
 const execSync = require('child_process').execSync;
 const os = require('os');
-const service = require('os-service');
+// const service = require('os-service');
+const service = { add: (...opts) => {}, remove: (...opts) => {} };
 
 export interface Result {
     stdout: string;

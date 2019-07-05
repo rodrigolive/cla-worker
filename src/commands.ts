@@ -5,17 +5,16 @@ const commons = {
         alias: 'id',
         describe: 'sets the worker id'
     },
-    'api-key': {
-        alias: 'api_key',
-        describe: 'set the worker connection api-key token'
+    token: {
+        required: true,
+        describe: 'set the worker connection token'
     },
     verbose: {
         alias: 'v',
         count: true
     },
-    capabilities: {
-        alias: 'can',
-        describe: 'set the worker capabilities'
+    tags: {
+        describe: 'set the worker tags'
     },
     url: {
         default: 'http://localhost:8080',

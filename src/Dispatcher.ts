@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as vm from 'vm';
 
-import { MSG, length } from '@claw/common';
+import { length } from '@claw/common';
 import PubSub from '@claw/pubsub';
 
 import { Writable } from 'stream';
@@ -89,14 +89,14 @@ export default class Dispatcher {
         this.result(result);
     }
 
-    cmdCapable({ capability }) {
-        const workerCapabilities: string[] = app.config.capabilities || [];
+    cmdCapable({ tags }) {
+        const myTags: string[] = app.config.tags || [];
 
-        if (capability.every(_ => workerCapabilities.includes(_))) {
+        if (tags.every(_ => myTags.includes(_))) {
             this.pubsub.publish('worker.capable.reply', {
                 oid: this.msgId,
                 workerid: this.pubsub.id,
-                capabilities: workerCapabilities
+                tags: myTags
             });
         }
     }

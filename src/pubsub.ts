@@ -3,8 +3,6 @@ import * as EventSource from 'eventsource';
 const axios = require('axios');
 const generate = require('shortid');
 import { Writable, Readable } from 'stream';
-//var http = require('http-debug').http;
-//http.debug = 2;
 
 export default class PubSub {
     id: string;
@@ -17,21 +15,21 @@ export default class PubSub {
     ev: EventSource;
     disconnecting: any;
     lastEventID: any;
-    apiKey: string;
+    token: string;
 
     constructor(options: any = {}) {
         this.id = options.id || generate();
         this.baseURL = options.baseURL || '';
         this.username = options.username;
-        this.apiKey = options.apiKey;
+        this.token = options.token;
         this.connected = false;
         this.errorHandler = null;
         this.subscriptions = {};
     }
 
     address(path) {
-        const { baseURL, id, apiKey } = this;
-        return `${baseURL}${path}?id=${id}&api_key=${apiKey}`;
+        const { baseURL, id, token } = this;
+        return `${baseURL}${path}?id=${id}&token=${token}`;
     }
 
     parseData(data) {

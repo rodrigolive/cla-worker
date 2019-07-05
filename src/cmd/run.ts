@@ -9,7 +9,7 @@ module.exports = new class implements yargs.CommandModule {
     describe = 'Run the worker online';
 
     builder(args: yargs.Argv) {
-        commonOptions(args, 'verbose', 'api-key', 'url', 'workerid', 'capabilities');
+        commonOptions(args, 'verbose', 'token', 'url', 'workerid', 'tags');
         return args;
     }
 
@@ -22,10 +22,9 @@ module.exports = new class implements yargs.CommandModule {
             console.log(argv);
 
             const pubsub = new PubSub({
-                //username: 'rodrigo',
                 id: argv.id,
                 baseURL: argv.url,
-                apiKey: argv.apiKey
+                token: argv.token
             });
 
             try {

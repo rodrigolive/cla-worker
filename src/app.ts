@@ -9,8 +9,7 @@ import ConsoleLogger from '@claw/util/logger';
 type AppConfig = {
     basedir: string;
     homedir: string;
-    capabilities: string[];
-    defaultWorkspaceName: string;
+    tags: string[];
 };
 
 class App {
@@ -53,14 +52,14 @@ class App {
     }
 
     configure(argv) {
-        const CLAW_BASE =
-            process.env.CLAW_BASE || path.resolve(process.cwd(), '..');
+        const CLA_WORKER_BASE =
+            process.env.CLA_WORKER_BASE || path.resolve(process.cwd(), '..');
 
-        const CLAW_HOME = process.env.CLAW_HOME || process.cwd();
+        const CLA_WORKER_HOME = process.env.CLA_WORKER_HOME || process.cwd();
 
         let defaults = {};
 
-        const configCandidates = [path.join(CLAW_HOME, './claw.yml')];
+        const configCandidates = [path.join(CLA_WORKER_HOME, './cla-worker.yml')];
 
         for (const configPath of configCandidates) {
             if (!fs.existsSync(configPath)) continue;
@@ -72,14 +71,14 @@ class App {
         this.env =
             argv.env ||
             process.env
-                .CLAW_ENV; /* ||
+                .CLA_WORKER_ENV; /* ||
             this.logger.fatal('Missing -c [env] parameter'); */
 
         let userConfig;
 
         if (this.env) {
             const configFilename = path.join(
-                CLAW_BASE,
+                CLA_WORKER_BASE,
                 `./config/${this.env}.yml`
             );
 
@@ -105,14 +104,20 @@ class App {
         }
 
         const config = {
-            homedir: CLAW_HOME,
-            basedir: CLAW_BASE,
-            defaultWorkspaceName: '.claw',
+            homedir: CLA_WORKER_HOME,
+            basedir: CLA_WORKER_BASE,
             ...defaults,
             ...userConfig
         };
 
         Object.keys(argv).map(key => (config[key] = argv[key]));
+
+        if( typeof config.tags === 'string' ) {
+            config.tags = config.tags.split(',')
+        }
+        else if( !Array.isArray( config.tags ) ) {
+            config.tags = [];
+        }
 
         return config;
     }
