@@ -3,6 +3,7 @@ import * as EventSource from 'eventsource';
 const axios = require('axios');
 const generate = require('shortid');
 import { Writable, Readable } from 'stream';
+import { origin } from '@claw/common';
 
 export default class PubSub {
     id: string;
@@ -16,12 +17,14 @@ export default class PubSub {
     disconnecting: any;
     lastEventID: any;
     token: string;
+    origin: string;
 
     constructor(options: any = {}) {
         this.id = options.id || generate();
         this.baseURL = options.baseURL || '';
         this.username = options.username;
         this.token = options.token;
+        this.origin = options.origin || origin();
         this.connected = false;
         this.errorHandler = null;
         this.subscriptions = {};
@@ -77,6 +80,50 @@ export default class PubSub {
                 false
             );
         });
+    }
+
+    async register(passkey:string) {
+        const { origin } = this;
+        try {
+            const response = await axios({
+                method: 'POST',
+                url: this.address('/pubsub/register'),
+                params: { passkey, origin }
+            });
+
+            return response.data;
+        } catch (error) {
+            const { response } = error;
+            if (response && response.statusText) {
+                throw `error registering worker to ${this.baseURL} ==> ${
+                    response.status
+                } ${response.statusText}: ${response.data||''}`;
+            } else {
+                throw error;
+            }
+        }
+    }
+
+    async unregister() {
+        const { token, origin } = this;
+        try {
+            const response = await axios({
+                method: 'POST',
+                url: this.address('/pubsub/unregister'),
+                params: { token, origin }
+            });
+
+            return response.data;
+        } catch (error) {
+            const { response } = error;
+            if (response && response.statusText) {
+                throw `error registering worker to ${this.baseURL} ==> ${
+                    response.status
+                } ${response.statusText}: ${response.data||''}`;
+            } else {
+                throw error;
+            }
+        }
     }
 
     maybeConnect() {

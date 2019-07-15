@@ -59,7 +59,9 @@ class App {
 
         let defaults = {};
 
-        const configCandidates = [path.join(CLA_WORKER_HOME, './cla-worker.yml')];
+        const configCandidates = [
+            path.join(CLA_WORKER_HOME, './cla-worker.yml')
+        ];
 
         for (const configPath of configCandidates) {
             if (!fs.existsSync(configPath)) continue;
@@ -112,10 +114,9 @@ class App {
 
         Object.keys(argv).map(key => (config[key] = argv[key]));
 
-        if( typeof config.tags === 'string' ) {
-            config.tags = config.tags.split(',')
-        }
-        else if( !Array.isArray( config.tags ) ) {
+        if (typeof config.tags === 'string') {
+            config.tags = config.tags.split(',');
+        } else if (!Array.isArray(config.tags)) {
             config.tags = [];
         }
 
@@ -136,6 +137,32 @@ class App {
         /// TODO load all plugin code
     }
 
+    daemonize() {
+        const { logfile, pidfile } = this.config;
+
+        fs.writeFileSync(pidfile, `${process.pid}\n`);
+        var access = fs.createWriteStream(logfile);
+        process.stdout.write = process.stderr.write = access.write.bind(access);
+    }
+
+    checkRunningDaemon() {
+        const { pidfile, logfile } = this.config;
+
+        this.info(`logfile=${logfile}`);
+        this.info(`pidfile=${pidfile}`);
+
+        try {
+            const pid = fs.readFileSync(pidfile);
+            process.kill(parseInt(pid.toString(), 10), 0);
+            this.fail(
+                `cannot start daemon: pidfile ${pidfile} currently exists and daemon is active with pid=${pid}`
+            );
+        } catch (err) {
+            if(err.code!=='ESRCH') {
+                this.error(`error checking pidfile: ${err} (code=${err.code})`);
+            }
+        }
+    }
 }
 
 export default new App();

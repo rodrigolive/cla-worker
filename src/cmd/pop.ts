@@ -3,8 +3,15 @@ import * as yargs from 'yargs';
 import * as fs from 'fs';
 import * as path from 'path';
 import PubSub from '@claw/pubsub';
-import { commonOptions } from '@claw/commands';
+import { commonOptions, CmdArgs } from '@claw/commands';
 import { Writable } from 'stream';
+
+interface Args extends CmdArgs {
+    key: string;
+    filepath: string;
+    filekey: string;
+    file: string;
+}
 
 module.exports = new class implements yargs.CommandModule {
     command = 'pop';
@@ -21,7 +28,7 @@ module.exports = new class implements yargs.CommandModule {
         return args;
     }
 
-    async handler(argv: yargs.Arguments) {
+    async handler(argv: Args) {
         app.build({ argv });
 
         const onError: Array<(err: Error) => void> = [];
