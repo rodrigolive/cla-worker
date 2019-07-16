@@ -1,6 +1,15 @@
 import * as yargs from 'yargs';
 import { origin } from '@claw/common';
 
+export interface CmdArgs extends yargs.Arguments {
+    id?:string;
+    token?: string;
+    passkey?: string;
+    config?: string;
+    tags?: string;
+    verbose?: boolean | number;
+}
+
 const commons = {
     workerid: {
         alias: 'id',
@@ -11,12 +20,16 @@ const commons = {
         describe: 'the server registration passkey'
     },
     token: {
-        required: true,
         describe: 'set the registered worker connection token'
     },
     verbose: {
         alias: 'v',
         count: true
+    },
+    config: {
+        alias: 'c',
+        describe: 'path to config file',
+        type: 'string'
     },
     daemon: {
         alias: 'fork',
@@ -57,8 +70,3 @@ export function commonOptions(args: yargs.Argv, ...options) {
     return args;
 }
 
-export interface CmdArgs extends yargs.Arguments {
-    passkey: string;
-    token: string;
-    verbose: boolean | number;
-}

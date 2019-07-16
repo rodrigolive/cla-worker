@@ -5,31 +5,45 @@ import * as yargs from 'yargs';
 
 import { Logger } from '@claw/types';
 import ConsoleLogger from '@claw/util/logger';
+import { CmdArgs } from '@claw/commands';
 
-type AppConfig = {
-    basedir: string;
-    homedir: string;
+type Registration = {
+    id: string;
+    token: string;
+}
+
+class AppConfig {
+    id: string;
+    token: string;
+    url: string;
+    home: string;
+    logfile: string;
+    pidfile: string;
+    registrations: Registration[];
     tags: string[];
-};
+}
 
 class App {
-    config: AppConfig & any; // TODO better define what config is
+    argv: CmdArgs;
+    config: AppConfig;
     logger: Logger = new ConsoleLogger();
-    argv: yargs.Argv;
     env: string; // TODO this concept does not fit well here
-    DEBUG: boolean = false;
+    DEBUG: number = 0;
 
-    build(params) {
-        this.config = this.configure(params.argv);
-        this.argv = params.argv;
-        this.DEBUG = params.argv.verbose;
+    build({ argv, logger }: { argv: CmdArgs; logger?: Logger }) {
+        this.argv = argv;
+        this.DEBUG =
+            argv.verbose === false
+                ? 0
+                : argv.verbose === true
+                    ? 1
+                    : argv.verbose;
 
-        if (params.logger) {
-            this.logger = params.logger;
+        if (logger) {
+            this.logger = logger;
         }
 
-        // this is the global app object
-        // App.app = this;
+        this.config = this.configure(argv);
     }
 
     path(dirOrFile) {
@@ -52,64 +66,41 @@ class App {
     }
 
     configure(argv) {
-        const CLA_WORKER_BASE =
-            process.env.CLA_WORKER_BASE || path.resolve(process.cwd(), '..');
-
         const CLA_WORKER_HOME = process.env.CLA_WORKER_HOME || process.cwd();
 
         let defaults = {};
 
-        const configCandidates = [
-            path.join(CLA_WORKER_HOME, './cla-worker.yml')
+        const configCandidates: string[] = [
+            argv.config,
+            process.env.CLA_WORKER_CONFIG,
+            path.join(CLA_WORKER_HOME, './cla-worker.yml'),
+            path.join(process.env.HOME, './cla-worker.yml'),
+            path.join('/etc/cla-worker.yml')
         ];
 
-        for (const configPath of configCandidates) {
-            if (!fs.existsSync(configPath)) continue;
-            const baseFile = fs.readFileSync(configPath, 'utf8');
-            const configData = YAML.safeLoad(baseFile);
-            defaults = { ...defaults, ...configData };
-        }
+        let configData;
 
-        this.env =
-            argv.env ||
-            process.env
-                .CLA_WORKER_ENV; /* ||
-            this.logger.fatal('Missing -c [env] parameter'); */
+        for (const configPath of configCandidates.filter(_ => _ != null)) {
+            this.debug(`checking for config file at ${configPath}...`);
 
-        let userConfig;
+            if (!fs.existsSync(configPath)) {
+                continue;
+            }
 
-        if (this.env) {
-            const configFilename = path.join(
-                CLA_WORKER_BASE,
-                `./config/${this.env}.yml`
-            );
+            this.debug(`found ${configPath}, loading...`);
 
-            if (!fs.existsSync(configFilename)) {
-                this.logger.fatal(
-                    1,
-                    `could not find config file '${configFilename}'`
-                );
-            } else {
-                let configFile;
-
-                try {
-                    configFile = fs.readFileSync(configFilename, 'utf8');
-                } catch (err) {
-                    this.logger.fatal(
-                        1,
-                        `could not open config file '${configFilename}': ${err}`
-                    );
-                }
-
-                userConfig = YAML.safeLoad(configFile);
+            try {
+                const baseFile = fs.readFileSync(configPath, 'utf8');
+                configData = YAML.safeLoad(baseFile);
+                break;
+            } catch (err) {
+                throw `failed to load config file ${configPath}: ${err}`;
             }
         }
 
         const config = {
-            homedir: CLA_WORKER_HOME,
-            basedir: CLA_WORKER_BASE,
             ...defaults,
-            ...userConfig
+            ...configData
         };
 
         Object.keys(argv).map(key => (config[key] = argv[key]));
@@ -118,6 +109,22 @@ class App {
             config.tags = config.tags.split(',');
         } else if (!Array.isArray(config.tags)) {
             config.tags = [];
+        }
+
+        const { registrations } = config;
+
+        if( Array.isArray(registrations) && registrations.length > 0 ) {
+            if(config.id) {
+                registrations.forEach( registration => {
+                    if( registration.id === config.id ) {
+                        config.token = registration.token;
+                    }
+                });
+            }
+            else if( !config.id && registrations.length === 1 ) {
+                config.id = registrations[0].id;
+                config.token = registrations[0].token;
+            }
         }
 
         return config;
@@ -158,7 +165,7 @@ class App {
                 `cannot start daemon: pidfile ${pidfile} currently exists and daemon is active with pid=${pid}`
             );
         } catch (err) {
-            if(err.code!=='ESRCH') {
+            if (err.code !== 'ESRCH') {
                 this.error(`error checking pidfile: ${err} (code=${err.code})`);
             }
         }

@@ -1,5 +1,5 @@
 import app from '@claw/app';
-import * as EventSource from 'eventsource';
+import * as EventSource from '@claw/util/eventsource';
 const axios = require('axios');
 const generate = require('shortid');
 import { Writable, Readable } from 'stream';
@@ -65,7 +65,9 @@ export default class PubSub {
             this.ev.onmessage = e => this.onmessage(e, false);
 
             this.ev.onopen = e => {
-                app.milestone('connected to pubsub server with workerId=' + this.id);
+                app.milestone(
+                    `connected to pubsub server with workerId=${this.id}`
+                );
                 resolve(e);
             };
 
@@ -82,7 +84,7 @@ export default class PubSub {
         });
     }
 
-    async register(passkey:string) {
+    async register(passkey: string) {
         const { origin } = this;
         try {
             const response = await axios({
@@ -97,7 +99,7 @@ export default class PubSub {
             if (response && response.statusText) {
                 throw `error registering worker to ${this.baseURL} ==> ${
                     response.status
-                } ${response.statusText}: ${response.data||''}`;
+                } ${response.statusText}: ${response.data || ''}`;
             } else {
                 throw error;
             }
@@ -119,7 +121,7 @@ export default class PubSub {
             if (response && response.statusText) {
                 throw `error registering worker to ${this.baseURL} ==> ${
                     response.status
-                } ${response.statusText}: ${response.data||''}`;
+                } ${response.statusText}: ${response.data || ''}`;
             } else {
                 throw error;
             }
@@ -308,7 +310,7 @@ export default class PubSub {
             if (response && response.statusText) {
                 throw `error publishing data to ${this.baseURL} ==> ${
                     response.status
-                } ${response.statusText}: ${response.data||''}`;
+                } ${response.statusText}: ${response.data || ''}`;
             } else {
                 throw error;
             }
@@ -332,7 +334,7 @@ export default class PubSub {
             if (response && response.statusText) {
                 throw `error downloading data ${key} from ${this.baseURL} ==> ${
                     response.status
-                } ${response.statusText}: ${response.data||''}`;
+                } ${response.statusText}: ${response.data || ''}`;
             } else {
                 throw error;
             }
@@ -358,7 +360,7 @@ export default class PubSub {
             if (response && response.statusText) {
                 throw `error uploading data ${key} to ${this.baseURL} ==> ${
                     response.status
-                } ${response.statusText}: ${response.data||''}`;
+                } ${response.statusText}: ${response.data || ''}`;
             } else {
                 throw error;
             }

@@ -3,7 +3,7 @@ import * as yargs from 'yargs';
 import PubSub from '@claw/pubsub';
 import { installService } from '@claw/service';
 
-import { commonOptions } from '@claw/commands';
+import { commonOptions, CmdArgs } from '@claw/commands';
 
 module.exports = new class implements yargs.CommandModule {
     command = 'install';
@@ -14,7 +14,7 @@ module.exports = new class implements yargs.CommandModule {
         return args;
     }
 
-    async handler(argv: yargs.Arguments) {
+    async handler(argv: CmdArgs) {
         app.build({ argv });
 
         installService({

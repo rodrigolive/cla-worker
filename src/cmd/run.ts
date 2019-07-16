@@ -15,6 +15,7 @@ class CmdRun implements yargs.CommandModule {
             'verbose',
             'token',
             'url',
+            'config',
             'workerid',
             'logfile',
             'pidfile',
@@ -28,7 +29,7 @@ class CmdRun implements yargs.CommandModule {
         app.build({ argv });
 
         await app.startup();
-        app.debug(argv);
+        app.debug('cla-worker loaded config: ', app.config);
 
         const { logfile, pidfile } = app.config;
 
@@ -64,17 +65,32 @@ class CmdRun implements yargs.CommandModule {
     }
 
     static async runner(argv: CmdArgs) {
+        const { id, url, token } = app.config;
+
         try {
+            if (!token) {
+                app.warn(`no token detected for workerId=${id}.`);
+                app.warn(
+                    `register your worker first with "cla-worker register" to get an id/token pair or set it with --token [your_token]`
+                );
+            }
+
             const pubsub = new PubSub({
-                id: argv.id,
-                baseURL: argv.url,
-                token: argv.token
+                id,
+                token,
+                baseURL: url
             });
 
             try {
                 await pubsub.connect();
             } catch (err) {
-                app.error('could not connect to server: ', err.message);
+                if (err.status === 401) {
+                    app.error(
+                        `could not connect to server: worker id=${id} is not authorized. Have you ran "cla-worker register"?`
+                    );
+                } else {
+                    app.error(`could not connect to server: ${err.status} ${err.message}: ${err.warning}`);
+                }
                 process.exit(1);
             }
 
