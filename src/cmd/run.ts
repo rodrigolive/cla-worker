@@ -81,6 +81,11 @@ class CmdRun implements yargs.CommandModule {
                 baseURL: url
             });
 
+            app.on('exit', async () => {
+                app.info('closing pubsub connection');
+                await pubsub.close();
+            });
+
             try {
                 await pubsub.connect();
             } catch (err) {

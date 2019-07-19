@@ -262,20 +262,27 @@ export default class PubSub {
         }, 5000);
     }
 
-    close() {
+    async close() {
+        app.debug('closing pubsub event watcher...');
+
         if (!this.connected) return;
         this.connected = false;
 
         if (this.ev) {
-            this.ev.close();
+            await this.ev.close();
             this.ev = null;
         }
 
-        axios({
+        app.debug('sending close request to pubsub...');
+
+        const res = await axios({
             method: 'post',
             url: this.address('/pubsub/close'),
-            data: { id: this.id }
+            data: { id: this.id, token: this.token }
         });
+
+        app.debug('pubsub closed');
+
     }
 
     async poll() {

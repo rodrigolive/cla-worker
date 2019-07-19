@@ -6,11 +6,12 @@ import * as yargs from 'yargs';
 import { Logger } from '@claw/types';
 import ConsoleLogger from '@claw/util/logger';
 import { CmdArgs } from '@claw/commands';
+import { EventEmitter } from 'events';
 
 type Registration = {
     id: string;
     token: string;
-}
+};
 
 class AppConfig {
     id: string;
@@ -23,7 +24,7 @@ class AppConfig {
     tags: string[];
 }
 
-class App {
+class App extends EventEmitter {
     argv: CmdArgs;
     config: AppConfig;
     logger: Logger = new ConsoleLogger();
@@ -113,15 +114,14 @@ class App {
 
         const { registrations } = config;
 
-        if( Array.isArray(registrations) && registrations.length > 0 ) {
-            if(config.id) {
-                registrations.forEach( registration => {
-                    if( registration.id === config.id ) {
+        if (Array.isArray(registrations) && registrations.length > 0) {
+            if (config.id) {
+                registrations.forEach(registration => {
+                    if (registration.id === config.id) {
                         config.token = registration.token;
                     }
                 });
-            }
-            else if( !config.id && registrations.length === 1 ) {
+            } else if (!config.id && registrations.length === 1) {
                 config.id = registrations[0].id;
                 config.token = registrations[0].token;
             }
@@ -130,8 +130,29 @@ class App {
         return config;
     }
 
+    exitHandler = async signal => {
+        this.warn(`\ncla-worker exiting on request signal=${signal}`);
+        for (const listener of this.listeners('exit')) {
+            await listener();
+        }
+        process.exit(2);
+    };
+
     async startup() {
-        // TODO placeholder method for connecting to internal db, etc.
+        //do something when app is closing
+        process.on('SIGTERM', this.exitHandler);
+        // process.on('exit', this.exitHandler);
+
+        //catches ctrl+c event
+        process.on('SIGINT', this.exitHandler);
+
+        // catches "kill pid"
+        process.on('SIGUSR1', this.exitHandler);
+        process.on('SIGUSR2', this.exitHandler);
+
+        //catches uncaught exceptions
+        process.on('uncaughtException', this.exitHandler);
+
         return;
     }
 
