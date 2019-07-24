@@ -66,7 +66,7 @@ export default class PubSub {
 
             this.ev.onopen = e => {
                 app.milestone(
-                    `connected to pubsub server with workerId=${this.id}`
+                    `connected to Clarive server with workerId=${this.id}`
                 );
                 resolve(e);
             };

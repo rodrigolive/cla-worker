@@ -35,7 +35,7 @@ export default class Dispatcher {
     }
 
     async process() {
-        app.info('dispatching message:', this.msgId);
+        app.info('dispatching message: %s %s', this.msgId, this.cmd);
 
         if (this.cmd !== 'worker.shutdown') {
             await this.pubsub.publish(`${this.cmd}.ack`, { oid: this.msgId });

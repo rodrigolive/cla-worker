@@ -82,8 +82,9 @@ class CmdRun implements yargs.CommandModule {
             });
 
             app.on('exit', async () => {
-                app.info('closing pubsub connection');
+                app.info('closing connection to Clarive server...');
                 await pubsub.close();
+                app.milestone('worker shutdown completed!');
             });
 
             try {
@@ -94,7 +95,11 @@ class CmdRun implements yargs.CommandModule {
                         `could not connect to server: worker id=${id} is not authorized. Have you ran "cla-worker register"?`
                     );
                 } else {
-                    app.error(`could not connect to server: ${err.status} ${err.message}: ${err.warning}`);
+                    app.error(
+                        `could not connect to server: ${err.status} ${
+                            err.message
+                        }: ${err.warning}`
+                    );
                 }
                 process.exit(1);
             }
@@ -129,7 +134,10 @@ class CmdRun implements yargs.CommandModule {
                     }
                 },
                 err => {
-                    app.error('connection error: ', err);
+                    const msg = err.message
+                        ? `${err.message} (code: ${err.status})`
+                        : 'server not available';
+                    app.error('connection error: ', msg);
                 }
             );
         } catch (err) {

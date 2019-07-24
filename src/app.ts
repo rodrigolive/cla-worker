@@ -159,7 +159,10 @@ class App extends EventEmitter {
             newConfig.registrations = Object.values(regMap);
         }
 
-        const dump = YAML.safeDump(newConfig, { indent: 4, condenseFlow: true });
+        const dump = YAML.safeDump(newConfig, {
+            indent: 4,
+            condenseFlow: true
+        });
 
         this.debug(`saving config to file '${configPath}'...`);
 
@@ -169,7 +172,7 @@ class App extends EventEmitter {
             throw `failed to save config file '${configPath}': ${err}`;
         }
 
-        return [configPath, dump ];
+        return [configPath, dump];
     }
 
     exitHandler = async signal => {

@@ -18,12 +18,13 @@ module.exports = new class implements yargs.CommandModule {
 
         try {
             await app.startup();
+            const { id, token } = app.config;
 
             const pubsub = new PubSub({
-                id: argv.id,
+                id,
+                token,
                 baseURL: argv.url,
                 origin: argv.origin,
-                token: argv.token
             });
 
             const result = await pubsub.unregister();
@@ -33,7 +34,7 @@ module.exports = new class implements yargs.CommandModule {
                 app.fail(`error unregistering worker: ${error}`);
             }
             else {
-                app.info('Worker registration removed: ', pubsub.id);
+                app.milestone('worker registration removed: ', pubsub.id);
             }
         } catch (err) {
             app.debug(err);
