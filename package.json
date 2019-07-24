@@ -5,7 +5,7 @@
     "main": "src/cli.js",
     "scripts": {
         "test": "jest",
-        "build": "rimraf ./dist && tsc && cp -R package.json bin ./dist/ && cd ./dist && pkg bin/cla-worker -c package.json && cd .. && find ./dist/ -name '*.j*' -exec rm {} \\;",
+        "build": "rimraf ./dist && tsc && cp -R package.json bin ./dist/ && find src -name '*.js' -exec cp {} dist/{} \\; && cd ./dist && pkg bin/cla-worker -t node10-win,node10-linux,node10-macos -c package.json && cd .. && find ./dist/ -name '*.j*' -exec rm {} \\;",
         "build-watch": "tsc -w",
         "test-watch": "npx jest --watchAll",
         "docs": "gitbook build docs ../cla-worker-docs",
@@ -60,6 +60,7 @@
         "@types/yargs": "^13.0.0",
         "http-debug": "^0.1.2",
         "jest": "^24.8.0",
+        "pkg": "^4.4.0",
         "rimraf": "^2.6.3",
         "ts-jest": "^24.0.2",
         "typescript": "^3.5.2"
