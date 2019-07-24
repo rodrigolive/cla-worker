@@ -46,6 +46,11 @@ export default class ConsoleLogger implements Logger {
         );
     }
 
+    echo(msg: LogMessage, ...args): void {
+        msg = this.dump(msg);
+        this.printer(msg, ...args.map(arg => this.dump(arg)));
+    }
+
     fatal(code: number | LogMessage, msg: LogMessage, ...args): void {
         if (typeof code === 'number') {
             msg = this.dump(msg);
@@ -63,4 +68,3 @@ export default class ConsoleLogger implements Logger {
         process.exit(code);
     }
 }
-

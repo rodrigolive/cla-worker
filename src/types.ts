@@ -17,6 +17,7 @@ export interface Logger {
     warn(msg: LogMessage, ...args);
     debug(msg: LogMessage, ...args);
     error(msg: LogMessage, ...args);
+    echo(msg: LogMessage, ...args);
     fatal(code: number, msg: LogMessage, ...args: any[]);
     fatal(msg: LogMessage, ...args: any[]);
 }

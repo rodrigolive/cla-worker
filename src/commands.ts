@@ -5,7 +5,7 @@ export interface CmdArgs extends yargs.Arguments {
     id?:string;
     token?: string;
     passkey?: string;
-    config?: string;
+    config?: string|boolean;
     tags?: string;
     verbose?: boolean | number;
 }
@@ -30,6 +30,11 @@ const commons = {
         alias: 'c',
         describe: 'path to config file',
         type: 'string'
+    },
+    save: {
+        type: 'boolean',
+        default: false,
+        describe: 'save registration to config file'
     },
     daemon: {
         alias: 'fork',

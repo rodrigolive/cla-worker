@@ -37,7 +37,9 @@ export default class Dispatcher {
     async process() {
         app.info('dispatching message:', this.msgId);
 
-        await this.pubsub.publish(`${this.cmd}.ack`, { oid: this.msgId });
+        if (this.cmd !== 'worker.shutdown') {
+            await this.pubsub.publish(`${this.cmd}.ack`, { oid: this.msgId });
+        }
 
         try {
             switch (this.cmd) {
@@ -48,6 +50,19 @@ export default class Dispatcher {
                     break;
                 case 'worker.get_file':
                     await this.cmdGetFile(this.message);
+                    break;
+                case 'worker.shutdown':
+                    app.warn(
+                        `shudown event received from the server. Reason: ${
+                            this.message.reason
+                        }`
+                    );
+                    app.warn('trying to stop gracefully...');
+                    await this.pubsub.close();
+                    app.milestone(
+                        'worker shutdown on server request completed'
+                    );
+                    process.exit(10);
                     break;
                 case 'worker.eval':
                     await this.cmdEval(this.message);

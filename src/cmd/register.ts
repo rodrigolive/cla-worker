@@ -9,7 +9,17 @@ module.exports = new class implements yargs.CommandModule {
     describe = 'Register worker with a passkey';
 
     builder(args: yargs.Argv) {
-        commonOptions(args, 'verbose', 'passkey', 'url', 'workerid', 'tags', 'origin');
+        commonOptions(
+            args,
+            'verbose',
+            'passkey',
+            'url',
+            'workerid',
+            'tags',
+            'origin',
+            'save',
+            'config'
+        );
         return args;
     }
 
@@ -22,21 +32,31 @@ module.exports = new class implements yargs.CommandModule {
             const pubsub = new PubSub({
                 id: argv.id,
                 baseURL: argv.url,
-                origin: argv.origin,
+                origin: argv.origin
             });
 
             const result = await pubsub.register(argv.passkey);
             const { token, error, projects } = result;
 
-            if( error ) {
+            if (error) {
                 app.fail(`error registering worker: ${error}`);
-            }
-            else {
+            } else {
                 app.info('Registration token: ', token);
                 app.info('Projects registered: ', projects);
                 app.info(`Start the worker with the following command:
 
             cla-worker run --token ${token} --id ${pubsub.id}\n`);
+                app.info(`To remove this registration:
+
+            cla-worker unregister --token ${token} --id ${pubsub.id}\n`);
+            }
+
+            if (argv.save) {
+                app.info('saving registration to config file...');
+                const [configFile] = app.saveConfigFile({
+                    registrations: [{ id: argv.id, token }]
+                });
+                app.milestone(`registration saved to file '${configFile}'`);
             }
         } catch (err) {
             app.debug(err);

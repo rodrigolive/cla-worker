@@ -31,8 +31,8 @@ export default class PubSub {
     }
 
     address(path) {
-        const { baseURL, id, token } = this;
-        return `${baseURL}${path}?id=${id}&token=${token}`;
+        const { baseURL, id, token, origin, lastEventID } = this;
+        return `${baseURL}${path}?id=${id}&token=${token}&origin=${origin}&oid=${lastEventID}`;
     }
 
     parseData(data) {
@@ -85,19 +85,18 @@ export default class PubSub {
     }
 
     async register(passkey: string) {
-        const { origin } = this;
         try {
             const response = await axios({
                 method: 'POST',
                 url: this.address('/pubsub/register'),
-                params: { passkey, origin }
+                params: { passkey }
             });
 
             return response.data;
         } catch (error) {
             const { response } = error;
             if (response && response.statusText) {
-                throw `error registering worker to ${this.baseURL} ==> ${
+                throw `error registering worker at ${this.baseURL} ==> ${
                     response.status
                 } ${response.statusText}: ${response.data || ''}`;
             } else {
@@ -107,19 +106,19 @@ export default class PubSub {
     }
 
     async unregister() {
-        const { token, origin } = this;
+        const { token } = this;
         try {
             const response = await axios({
                 method: 'POST',
                 url: this.address('/pubsub/unregister'),
-                params: { token, origin }
+                params: { token }
             });
 
             return response.data;
         } catch (error) {
             const { response } = error;
             if (response && response.statusText) {
-                throw `error registering worker to ${this.baseURL} ==> ${
+                throw `error unregistering worker at ${this.baseURL} ==> ${
                     response.status
                 } ${response.statusText}: ${response.data || ''}`;
             } else {
@@ -268,21 +267,28 @@ export default class PubSub {
         if (!this.connected) return;
         this.connected = false;
 
-        if (this.ev) {
-            await this.ev.close();
-            this.ev = null;
+        try {
+            if (this.ev) {
+                await this.ev.close();
+                this.ev = null;
+            }
+        } catch (err) {
+            app.debug('event close request failed');
         }
 
         app.debug('sending close request to pubsub...');
 
-        const res = await axios({
-            method: 'post',
-            url: this.address('/pubsub/close'),
-            data: { id: this.id, token: this.token }
-        });
+        try {
+            const res = await axios({
+                method: 'post',
+                url: this.address('/pubsub/close'),
+                data: { id: this.id, token: this.token }
+            });
+        } catch (err) {
+            app.debug('pubsub close request failed');
+        }
 
         app.debug('pubsub closed');
-
     }
 
     async poll() {

@@ -54,6 +54,7 @@ class App extends EventEmitter {
     info = this.logger.info.bind(this.logger);
     warn = this.logger.warn.bind(this.logger);
     error = this.logger.error.bind(this.logger);
+    echo = this.logger.echo.bind(this.logger);
     milestone = this.logger.milestone.bind(this.logger);
     log = this.logger.info.bind(this.logger);
 
@@ -67,40 +68,10 @@ class App extends EventEmitter {
     }
 
     configure(argv) {
-        const CLA_WORKER_HOME = process.env.CLA_WORKER_HOME || process.cwd();
-
-        let defaults = {};
-
-        const configCandidates: string[] = [
-            argv.config,
-            process.env.CLA_WORKER_CONFIG,
-            path.join(CLA_WORKER_HOME, './cla-worker.yml'),
-            path.join(process.env.HOME, './cla-worker.yml'),
-            path.join('/etc/cla-worker.yml')
-        ];
-
-        let configData;
-
-        for (const configPath of configCandidates.filter(_ => _ != null)) {
-            this.debug(`checking for config file at ${configPath}...`);
-
-            if (!fs.existsSync(configPath)) {
-                continue;
-            }
-
-            this.debug(`found ${configPath}, loading...`);
-
-            try {
-                const baseFile = fs.readFileSync(configPath, 'utf8');
-                configData = YAML.safeLoad(baseFile);
-                break;
-            } catch (err) {
-                throw `failed to load config file ${configPath}: ${err}`;
-            }
-        }
+        let [configData] = this.loadConfigFile(argv.config);
 
         const config = {
-            ...defaults,
+            ...this.config,
             ...configData
         };
 
@@ -115,7 +86,7 @@ class App extends EventEmitter {
         const { registrations } = config;
 
         if (Array.isArray(registrations) && registrations.length > 0) {
-            if (config.id) {
+            if (config.id && !config.token) {
                 registrations.forEach(registration => {
                     if (registration.id === config.id) {
                         config.token = registration.token;
@@ -130,8 +101,80 @@ class App extends EventEmitter {
         return config;
     }
 
+    configCandidates(argvConfig): string[] {
+        const CLA_WORKER_HOME = process.env.CLA_WORKER_HOME || process.cwd();
+        return [
+            argvConfig,
+            process.env.CLA_WORKER_CONFIG,
+            path.join(CLA_WORKER_HOME, './cla-worker.yml'),
+            path.join(process.env.HOME, './cla-worker.yml'),
+            path.join('/etc/cla-worker.yml')
+        ];
+    }
+
+    loadConfigFile(argvConfig): any[] {
+        if (argvConfig === false) {
+            return [{}];
+        }
+
+        const configCandidates: string[] = this.configCandidates(argvConfig);
+
+        for (const configPath of configCandidates.filter(it => it != null)) {
+            this.debug(`checking for config file at ${configPath}...`);
+
+            if (!fs.existsSync(configPath)) {
+                if (configPath === argvConfig) {
+                    throw `invalid config file '${configPath}'`;
+                } else {
+                    continue;
+                }
+            }
+
+            this.debug(`found ${configPath}, loading...`);
+
+            try {
+                const baseFile = fs.readFileSync(configPath, 'utf8');
+                return [YAML.safeLoad(baseFile), configPath];
+            } catch (err) {
+                throw `failed to load config file ${configPath}: ${err}`;
+            }
+        }
+    }
+
+    saveConfigFile(data) {
+        const [currentConfig, configPath] = this.loadConfigFile(
+            this.argv.config
+        );
+
+        const registrations = data.registrations;
+        delete data.registrations;
+
+        const newConfig = { ...currentConfig, ...data };
+
+        if (registrations) {
+            const regMap = {};
+
+            newConfig.registrations.forEach(reg => (regMap[reg.id] = reg));
+            registrations.forEach(reg => (regMap[reg.id] = reg));
+            newConfig.registrations = Object.values(regMap);
+        }
+
+        const dump = YAML.safeDump(newConfig, { indent: 4, condenseFlow: true });
+
+        this.debug(`saving config to file '${configPath}'...`);
+
+        try {
+            fs.writeFileSync(configPath, dump, 'utf8');
+        } catch (err) {
+            throw `failed to save config file '${configPath}': ${err}`;
+        }
+
+        return [configPath, dump ];
+    }
+
     exitHandler = async signal => {
-        this.warn(`\ncla-worker exiting on request signal=${signal}`);
+        this.echo('\n');
+        this.warn(`cla-worker exiting on request signal=${signal}`);
         for (const listener of this.listeners('exit')) {
             await listener();
         }

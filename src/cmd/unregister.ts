@@ -30,14 +30,10 @@ module.exports = new class implements yargs.CommandModule {
             const { registration, error, projects } = result;
 
             if( error ) {
-                app.fail(`error registering worker: ${error}`);
+                app.fail(`error unregistering worker: ${error}`);
             }
             else {
-                app.info('Registration token: ', registration);
-                app.info('Projects registered: ', projects);
-                app.info(`Now, to start the worker use the following command:
-
-            cla-worker run --token ${registration} --id ${pubsub.id}\n`);
+                app.info('Worker registration removed: ', pubsub.id);
             }
         } catch (err) {
             app.debug(err);

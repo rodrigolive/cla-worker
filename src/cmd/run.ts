@@ -106,6 +106,7 @@ class CmdRun implements yargs.CommandModule {
                     'worker.exec',
                     'worker.eval',
                     'worker.ready',
+                    'worker.shutdown',
                     'worker.capable'
                 ],
                 async (eventName, eventData, eventFind, oid) => {
