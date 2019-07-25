@@ -9,7 +9,15 @@ module.exports = new class implements yargs.CommandModule {
     describe = 'Unregister worker from server';
 
     builder(args: yargs.Argv) {
-        commonOptions(args, 'verbose', 'token', 'url', 'workerid', 'tags', 'origin');
+        commonOptions(
+            args,
+            'verbose',
+            'token',
+            'url',
+            'workerid',
+            'tags',
+            'origin'
+        );
         return args;
     }
 
@@ -18,28 +26,26 @@ module.exports = new class implements yargs.CommandModule {
 
         try {
             await app.startup();
-            const { id, token } = app.config;
+            const { id, token, url, origin } = app.config;
 
             const pubsub = new PubSub({
                 id,
                 token,
-                baseURL: argv.url,
-                origin: argv.origin,
+                origin,
+                baseURL: url
             });
 
             const result = await pubsub.unregister();
             const { registration, error, projects } = result;
 
-            if( error ) {
+            if (error) {
                 app.fail(`error unregistering worker: ${error}`);
-            }
-            else {
+            } else {
                 app.milestone('worker registration removed: ', pubsub.id);
             }
         } catch (err) {
             app.debug(err);
-            app.fail('command %s: %s', argv._.join(' '), err);
+            app.fail('command %s: %s', app.commandName, err);
         }
     }
 }();
-

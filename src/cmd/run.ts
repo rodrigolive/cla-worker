@@ -31,11 +31,11 @@ class CmdRun implements yargs.CommandModule {
         await app.startup();
         app.debug('cla-worker loaded config: ', app.config);
 
-        const { logfile, pidfile } = app.config;
+        const { daemon, logfile, pidfile } = app.config;
 
         const isFork = !!process.env['CLA_WORKER_FORKED'];
 
-        if (argv.daemon && !isFork) {
+        if (daemon && !isFork) {
             app.checkRunningDaemon();
 
             const { spawn } = require('child_process');
@@ -65,7 +65,7 @@ class CmdRun implements yargs.CommandModule {
     }
 
     static async runner(argv: CmdArgs) {
-        const { id, url, token } = app.config;
+        const { id, url, token, tags } = app.config;
 
         try {
             if (!token) {
@@ -78,6 +78,7 @@ class CmdRun implements yargs.CommandModule {
             const pubsub = new PubSub({
                 id,
                 token,
+                tags,
                 baseURL: url
             });
 
@@ -137,12 +138,15 @@ class CmdRun implements yargs.CommandModule {
                     const msg = err.message
                         ? `${err.message} (code: ${err.status})`
                         : 'server not available';
-                    app.error('connection error: ', msg);
+                    app.error(
+                        `connection error to server ${pubsub.baseURL}: `,
+                        msg
+                    );
                 }
             );
         } catch (err) {
             app.debug(err);
-            app.fail('command %s: %s', argv._.join(' '), err);
+            app.fail('command %s: %s', app.commandName, err);
         }
     }
 }

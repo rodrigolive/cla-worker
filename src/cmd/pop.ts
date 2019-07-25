@@ -107,7 +107,7 @@ module.exports = new class implements yargs.CommandModule {
                 ev(err);
             });
             app.debug(err);
-            app.fail('%s command: %s', argv._.join(' '), err);
+            app.fail('command %s: %s', app.commandName, err);
         }
     }
 }();

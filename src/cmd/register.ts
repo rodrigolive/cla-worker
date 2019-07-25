@@ -28,14 +28,15 @@ module.exports = new class implements yargs.CommandModule {
 
         try {
             await app.startup();
+            const { id, url, origin, passkey } = app.config;
 
             const pubsub = new PubSub({
-                id: argv.id,
-                baseURL: argv.url,
-                origin: argv.origin
+                id,
+                origin,
+                baseURL: url
             });
 
-            const result = await pubsub.register(argv.passkey);
+            const result = await pubsub.register(passkey);
             const { token, error, projects } = result;
 
             if (error) {
@@ -53,14 +54,16 @@ module.exports = new class implements yargs.CommandModule {
 
             if (argv.save) {
                 app.info('saving registration to config file...');
+
                 const [configFile] = app.saveConfigFile({
-                    registrations: [{ id: argv.id, token }]
+                    registrations: [{ id, token }]
                 });
+
                 app.milestone(`registration saved to file '${configFile}'`);
             }
         } catch (err) {
             app.debug(err);
-            app.fail('command %s: %s', argv._.join(' '), err);
+            app.fail('command %s: %s', app.commandName, err);
         }
     }
 }();

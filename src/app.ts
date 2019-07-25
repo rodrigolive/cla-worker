@@ -17,6 +17,9 @@ class AppConfig {
     id: string;
     token: string;
     url: string;
+    origin: string;
+    daemon: boolean;
+    passkey: string;
     home: string;
     logfile: string;
     pidfile: string;
@@ -27,6 +30,7 @@ class AppConfig {
 class App extends EventEmitter {
     argv: CmdArgs;
     config: AppConfig;
+    commandName: string;
     logger: Logger = new ConsoleLogger();
     env: string; // TODO this concept does not fit well here
     DEBUG: number = 0;
@@ -45,6 +49,7 @@ class App extends EventEmitter {
         }
 
         this.config = this.configure(argv);
+        this.commandName = argv._ ? argv._.join(' ') : '';
     }
 
     path(dirOrFile) {

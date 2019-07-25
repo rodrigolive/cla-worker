@@ -17,6 +17,7 @@ export default class PubSub {
     disconnecting: any;
     lastEventID: any;
     token: string;
+    tags: string[];
     origin: string;
 
     constructor(options: any = {}) {
@@ -24,6 +25,7 @@ export default class PubSub {
         this.baseURL = options.baseURL || '';
         this.username = options.username;
         this.token = options.token;
+        this.tags = options.tags;
         this.origin = options.origin || origin();
         this.connected = false;
         this.errorHandler = null;
@@ -31,8 +33,9 @@ export default class PubSub {
     }
 
     address(path) {
-        const { baseURL, id, token, origin, lastEventID } = this;
-        return `${baseURL}${path}?id=${id}&token=${token}&origin=${origin}&oid=${lastEventID}`;
+        const { baseURL, id, token, origin, tags, lastEventID } = this;
+        const tagStr = Array.isArray(tags) ? tags.join(',') : tags;
+        return `${baseURL}${path}?id=${id}&token=${token}&origin=${origin}&oid=${lastEventID}&tags=${tagStr}`;
     }
 
     parseData(data) {
@@ -66,7 +69,9 @@ export default class PubSub {
 
             this.ev.onopen = e => {
                 app.milestone(
-                    `connected to Clarive server with workerId=${this.id}`
+                    `connected to Clarive server ${
+                        this.baseURL
+                    } with workerId=${this.id}`
                 );
                 resolve(e);
             };
