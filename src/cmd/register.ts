@@ -18,6 +18,7 @@ module.exports = new class implements yargs.CommandModule {
             'tags',
             'origin',
             'save',
+            'token',
             'config'
         );
         return args;
@@ -33,6 +34,7 @@ module.exports = new class implements yargs.CommandModule {
             const pubsub = new PubSub({
                 id,
                 origin,
+                token: app.config.token,
                 baseURL: url
             });
 

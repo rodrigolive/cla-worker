@@ -24,7 +24,7 @@ export default class PubSub {
         this.id = options.id || generate();
         this.baseURL = options.baseURL || '';
         this.username = options.username;
-        this.token = options.token;
+        this.token = options.token || '';
         this.tags = options.tags;
         this.origin = options.origin || origin();
         this.connected = false;
@@ -35,7 +35,7 @@ export default class PubSub {
     address(path) {
         const { baseURL, id, token, origin, tags, lastEventID } = this;
         const tagStr = Array.isArray(tags) ? tags.join(',') : tags;
-        return `${baseURL}${path}?id=${id}&token=${token}&origin=${origin}&oid=${lastEventID}&tags=${tagStr}`;
+        return `${baseURL}${path}?id=${id}&token=${token}&origin=${origin}&oid=${lastEventID}&tags=${tagStr}&version=${app.version}`;
     }
 
     parseData(data) {
