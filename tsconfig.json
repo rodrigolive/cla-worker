@@ -5,6 +5,7 @@
         "lib": ["ESNext"],
         "module": "commonjs",
         "moduleResolution": "node",
+        "resolveJsonModule": true,
         "outDir": "./dist/",
         "importHelpers": true,
         "emitDecoratorMetadata": true,

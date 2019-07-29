@@ -7,6 +7,7 @@ import { Logger } from '@claw/types';
 import ConsoleLogger from '@claw/util/logger';
 import { CmdArgs } from '@claw/commands';
 import { EventEmitter } from 'events';
+import * as packageJson from '@claw/../package.json';
 
 type Registration = {
     id: string;
@@ -34,6 +35,7 @@ class App extends EventEmitter {
     logger: Logger = new ConsoleLogger();
     env: string; // TODO this concept does not fit well here
     DEBUG: number = 0;
+    version: string = packageJson.version;
 
     build({ argv, logger }: { argv: CmdArgs; logger?: Logger }) {
         this.argv = argv;

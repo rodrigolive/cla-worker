@@ -5,7 +5,7 @@ const debug = require('debug')('claw:main');
 const homedir = require('os').homedir();
 
 const appRoot = path.resolve(__dirname, '..');
-// global.appRoot = appRoot;
+const { version } = require('../package.json');
 
 moduleAlias.addAliases({
     '@claw': path.join(appRoot, 'src')
@@ -20,6 +20,7 @@ const yargs = require('yargs').commandDir(path.join(__dirname, '../src/cmd'), {
 yargs
     .usage('Usage: $0 <command> [options]')
     .recommendCommands()
+    .version(version)
     .demandCommand(1)
     .strict()
     .help('h')
