@@ -20,6 +20,7 @@ class CmdRun implements yargs.CommandModule {
             'logfile',
             'pidfile',
             'tags',
+            'envs',
             'daemon'
         );
         return args;
@@ -31,7 +32,11 @@ class CmdRun implements yargs.CommandModule {
         await app.startup();
         app.debug('cla-worker loaded config: ', app.config);
 
-        const { daemon, logfile, pidfile } = app.config;
+        const { id, daemon, logfile, pidfile } = app.config;
+
+        if( id == null ) {
+            app.fail('workerid is not defined, please set --id [workerid] or configure your cla-worker.yml file');
+        }
 
         const isFork = !!process.env['CLA_WORKER_FORKED'];
 
@@ -65,7 +70,7 @@ class CmdRun implements yargs.CommandModule {
     }
 
     static async runner(argv: CmdArgs) {
-        const { id, url, token, tags } = app.config;
+        const { id, url, token, tags, envs } = app.config;
 
         try {
             if (!token) {
@@ -79,6 +84,7 @@ class CmdRun implements yargs.CommandModule {
                 id,
                 token,
                 tags,
+                envs,
                 baseURL: url
             });
 
@@ -97,7 +103,7 @@ class CmdRun implements yargs.CommandModule {
                     );
                 } else {
                     app.error(
-                        `could not connect to server: ${err.status} ${
+                        `could not connect to server: ${err.status||''} ${
                             err.message
                         }: ${err.warning}`
                     );

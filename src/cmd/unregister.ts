@@ -13,7 +13,9 @@ module.exports = new class implements yargs.CommandModule {
             args,
             'verbose',
             'token',
+            'passkey',
             'url',
+            'env',
             'workerid',
             'tags',
             'origin'
@@ -26,16 +28,18 @@ module.exports = new class implements yargs.CommandModule {
 
         try {
             await app.startup();
-            const { id, token, url, origin } = app.config;
+            const { id, token, url, origin, passkey, tags, envs } = app.config;
 
             const pubsub = new PubSub({
                 id,
                 token,
                 origin,
+                tags,
+                envs,
                 baseURL: url
             });
 
-            const result = await pubsub.unregister();
+            const result = await pubsub.unregister(passkey);
             const { registration, error, projects } = result;
 
             if (error) {

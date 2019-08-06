@@ -51,7 +51,13 @@ const commons = {
         describe: 'path to daemon pid file'
     },
     tags: {
+        type: 'array',
         describe: 'set the worker tags'
+    },
+    envs: {
+        alias: 'env',
+        type: 'array',
+        describe: 'set the worker environments'
     },
     origin: {
         default: origin(),

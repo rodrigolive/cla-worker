@@ -19,4 +19,4 @@ export const readConfig = file => {
     }
 };
 
-export const origin = () => `${os.userInfo().username}@${os.hostname()}`;
+export const origin = () => `${os.userInfo().username}@${os.hostname()}#${process.pid}`;

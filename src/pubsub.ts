@@ -4,6 +4,7 @@ const axios = require('axios');
 const generate = require('shortid');
 import { Writable, Readable } from 'stream';
 import { origin } from '@claw/common';
+import { URL, URLSearchParams } from 'url';
 
 export default class PubSub {
     id: string;
@@ -18,6 +19,7 @@ export default class PubSub {
     lastEventID: any;
     token: string;
     tags: string[];
+    envs: string[];
     origin: string;
 
     constructor(options: any = {}) {
@@ -25,7 +27,8 @@ export default class PubSub {
         this.baseURL = options.baseURL || '';
         this.username = options.username;
         this.token = options.token || '';
-        this.tags = options.tags;
+        this.tags = options.tags || [];
+        this.envs = options.envs || [];
         this.origin = options.origin || origin();
         this.connected = false;
         this.errorHandler = null;
@@ -33,9 +36,18 @@ export default class PubSub {
     }
 
     address(path) {
-        const { baseURL, id, token, origin, tags, lastEventID } = this;
+        const { baseURL, id, token, origin, tags, envs, lastEventID } = this;
         const tagStr = Array.isArray(tags) ? tags.join(',') : tags;
-        return `${baseURL}${path}?id=${id}&token=${token}&origin=${origin}&oid=${lastEventID}&tags=${tagStr}&version=${app.version}`;
+
+        const url = new URL(`${baseURL}${path}`);
+
+        url.search = new URLSearchParams({
+            id, token, origin, oid: lastEventID||'', version: app.version, tags: tagStr, envs
+        }).toString();
+
+        app.debug(`address: ${url.toString()}`);
+
+        return url.toString();
     }
 
     parseData(data) {
@@ -110,18 +122,20 @@ export default class PubSub {
         }
     }
 
-    async unregister() {
+    async unregister(passkey) {
         const { token } = this;
+
         try {
             const response = await axios({
                 method: 'POST',
                 url: this.address('/pubsub/unregister'),
-                params: { token }
+                params: { token, passkey }
             });
 
             return response.data;
         } catch (error) {
             const { response } = error;
+
             if (response && response.statusText) {
                 throw `error unregistering worker at ${this.baseURL} ==> ${
                     response.status

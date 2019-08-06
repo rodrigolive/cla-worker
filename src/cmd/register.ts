@@ -16,6 +16,7 @@ module.exports = new class implements yargs.CommandModule {
             'url',
             'workerid',
             'tags',
+            'envs',
             'origin',
             'save',
             'token',
@@ -29,11 +30,13 @@ module.exports = new class implements yargs.CommandModule {
 
         try {
             await app.startup();
-            const { id, url, origin, passkey } = app.config;
+            const { id, url, origin, passkey, envs, tags } = app.config;
 
             const pubsub = new PubSub({
                 id,
                 origin,
+                envs,
+                tags,
                 token: app.config.token,
                 baseURL: url
             });

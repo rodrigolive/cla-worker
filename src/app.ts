@@ -26,6 +26,7 @@ class AppConfig {
     pidfile: string;
     registrations: Registration[];
     tags: string[];
+    envs: string[];
 }
 
 class App extends EventEmitter {
