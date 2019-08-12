@@ -153,6 +153,7 @@ export default class Dispatcher {
 
         if (length(this.message.chdir)) cmdOpts.cwd = this.message.chdir;
         if (!cmdArgs.length) cmdOpts.shell = true;
+        if(cmdName==null) throw "Missing command";
 
         app.debug(
             'Running cmd=%s, args=%s, opts=%s',
