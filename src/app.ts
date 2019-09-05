@@ -121,7 +121,7 @@ class App extends EventEmitter {
     }
 
     loadConfigFile(argvConfig): any[] {
-        if (argvConfig === false) {
+        if (!argvConfig) {
             return [{}];
         }
 
