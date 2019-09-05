@@ -47,6 +47,7 @@ module.exports = new class implements yargs.CommandModule {
             if (error) {
                 app.fail(`error registering worker: ${error}`);
             } else {
+                app.info('Registration WorkerID: ', pubsub.id);
                 app.info('Registration token: ', token);
                 app.info('Projects registered: ', projects);
                 app.info(`Start the worker with the following command:

@@ -104,8 +104,8 @@ class CmdRun implements yargs.CommandModule {
                 } else {
                     app.error(
                         `could not connect to server: ${err.status||''} ${
-                            err.message
-                        }: ${err.warning}`
+                            err.message||''
+                        }: ${err.warning||''}`
                     );
                 }
                 process.exit(1);
