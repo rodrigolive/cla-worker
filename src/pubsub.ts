@@ -1,10 +1,10 @@
 import app from '@claw/app';
 import * as EventSource from '@claw/util/eventsource';
-const axios = require('axios');
-const generate = require('shortid');
 import { Writable, Readable } from 'stream';
-import { origin } from '@claw/common';
+import { origin, workerid } from '@claw/common';
 import { URL, URLSearchParams } from 'url';
+
+import axios from 'axios';
 
 export default class PubSub {
     id: string;
@@ -23,7 +23,7 @@ export default class PubSub {
     origin: string;
 
     constructor(options: any = {}) {
-        this.id = options.id || generate();
+        this.id = options.id || `${workerid()}`;
         this.baseURL = options.baseURL || '';
         this.username = options.username;
         this.token = options.token || '';

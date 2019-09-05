@@ -2,6 +2,7 @@ import app from '@claw/app';
 import * as yaml from 'js-yaml';
 import * as os from 'os';
 import * as fs from 'fs';
+import * as generate from 'shortid';
 
 export const length = arg => {
     return arg !== undefined && arg !== null && arg.length > 0;
@@ -19,4 +20,8 @@ export const readConfig = file => {
     }
 };
 
-export const origin = () => `${os.userInfo().username}@${os.hostname()}#${process.pid}`;
+export const workerid = () =>
+    `${os.userInfo().username}@${os.hostname()}/${generate()}`;
+
+export const origin = () =>
+    `${os.userInfo().username}@${os.hostname()}/${process.pid}`;
