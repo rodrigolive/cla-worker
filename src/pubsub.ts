@@ -42,7 +42,13 @@ export default class PubSub {
         const url = new URL(`${baseURL}${path}`);
 
         url.search = new URLSearchParams({
-            id, token, origin, oid: lastEventID||'', version: app.version, tags: tagStr, envs
+            id,
+            token,
+            origin,
+            oid: lastEventID || '',
+            version: app.version,
+            tags: tagStr,
+            envs
         }).toString();
 
         app.debug(`address: ${url.toString()}`);

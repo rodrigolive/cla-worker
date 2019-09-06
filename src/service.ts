@@ -1,5 +1,8 @@
+import app from '@claw/app';
+import * as os from 'os';
+
 const execSync = require('child_process').execSync;
-const os = require('os');
+
 // const service = require('os-service');
 const service = { add: (...opts) => {}, remove: (...opts) => {} };
 
@@ -10,7 +13,7 @@ export interface Result {
 }
 
 export function exec(command) {
-    var result: Result = { stdout: '', status: 0, success: 1 };
+    let result: Result = { stdout: '', status: 0, success: 1 };
 
     try {
         result.stdout = execSync(command).toString();
@@ -27,9 +30,9 @@ export function exec(command) {
 export function isRoot() {
     let isRoot: any = 0;
 
-    if (/^linux|darwin/.exec(os.platform)) {
+    if (/^linux|darwin/.exec(os.platform())) {
         isRoot = process.getuid && process.getuid() === 0;
-    } else if (os.platform == 'win32') {
+    } else if (os.platform() == 'win32') {
         isRoot = exec('NET SESSION').success;
     }
 
@@ -37,7 +40,7 @@ export function isRoot() {
 }
 
 export function installService(options) {
-    var programArgs = [];
+    const programArgs = [];
 
     if (options.id) {
         programArgs.push('--id');
@@ -49,7 +52,7 @@ export function installService(options) {
         programArgs.push(options.auth);
     }
 
-    var installOptions = {
+    const installOptions = {
         displayName: 'claw',
         programArgs: programArgs,
         username: options.username,
@@ -67,17 +70,17 @@ export function installService(options) {
 
 export function actionService(action) {
     if (isRoot()) {
-        if (os.platform == 'linux') {
-            var serviceActionResult;
+        let serviceActionResult;
+        if (os.platform() == 'linux') {
             serviceActionResult = exec('service claw ' + action);
             serviceActionResult.success
-                ? console.log(serviceActionResult.stdout)
-                : console.error(serviceActionResult.message);
-        } else if (os.platform == 'win32') {
+                ? app.info(serviceActionResult.stdout)
+                : app.error(serviceActionResult.message);
+        } else if (os.platform() == 'win32') {
             serviceActionResult = exec(`net ${action} $service /y`);
             serviceActionResult.success
-                ? console.log(serviceActionResult.stdout)
-                : console.error(serviceActionResult.message);
+                ? app.info(serviceActionResult.stdout)
+                : app.error(serviceActionResult.message);
         }
     } else {
         console.log('Needs to be executed as root/Administrator user');

@@ -1,7 +1,6 @@
 import app from '@claw/app';
 import * as yargs from 'yargs';
 import * as fs from 'fs';
-import * as path from 'path';
 import PubSub from '@claw/pubsub';
 import { commonOptions, CmdArgs } from '@claw/commands';
 import { Writable } from 'stream';
@@ -65,32 +64,27 @@ module.exports = new class implements yargs.CommandModule {
                     app.error('Stream error', err);
                 });
 
-                onError.push(err => {
+                onError.push(() => {
                     fs.unlinkSync(tmpfile);
                 });
 
                 stream.on('finish', () => {
-                    fs.rename(
-                        tmpfile,
-                        argv.file,
-                        err => {
-                            if (err) {
-                                app.error(
-                                    `could not write file ${
-                                        argv.file
-                                    } from temp file ${tmpfile}`
-                                );
-                            }
-                            else {
-                                app.info(`wrote file ${argv.file}`);
-                            }
+                    fs.rename(tmpfile, argv.file, err => {
+                        if (err) {
+                            app.error(
+                                `could not write file ${
+                                    argv.file
+                                } from temp file ${tmpfile}`
+                            );
+                        } else {
+                            app.info(`wrote file ${argv.file}`);
                         }
-                    );
+                    });
                 });
             } else {
                 stream = new Writable({
                     write: (data, _, done) => {
-                        let [key, msg] = data;
+                        const [key, msg] = data;
                         app.debug('got data', data);
                         done();
                     }

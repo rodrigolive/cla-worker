@@ -27,10 +27,7 @@ export default class ConsoleLogger implements Logger {
 
     warn(msg: LogMessage, ...args): void {
         msg = this.dump(msg);
-        this.printer(
-            `⚠️ ${msg}`.yellow,
-            ...args.map(arg => this.dump(arg))
-        );
+        this.printer(`⚠️ ${msg}`.yellow, ...args.map(arg => this.dump(arg)));
     }
 
     debug(msg: LogMessage, ...args): void {

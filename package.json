@@ -6,10 +6,12 @@
     "scripts": {
         "test": "jest",
         "build": "rimraf ./dist && tsc && cp -R package.json bin ./dist/ && find src -name '*.js' -exec cp {} dist/{} \\; && cd ./dist && pkg bin/cla-worker -t node10-win,node10-linux,node10-macos -c package.json && cd .. && find ./dist/ -name '*.j*' -exec rm {} \\;",
+        "package": "npm run build && cd dist && tar cvzf cla-worker-lastest.tgz cla-worker-*",
         "build-watch": "tsc -w",
         "test-watch": "npx jest --watchAll",
         "docs": "gitbook build docs ../cla-worker-docs",
-        "lint": "tslint -p ."
+        "pretty": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
+        "lint": "eslint 'src/**' --strict"
     },
     "bin": "bin/cla-worker",
     "engines": {

@@ -1,11 +1,12 @@
-var original = require('original');
-var parse = require('url').parse;
-var events = require('events');
-var https = require('https');
-var http = require('http');
-var util = require('util');
+/* eslint-disable */
+const original = require('original');
+const parse = require('url').parse;
+const events = require('events');
+const https = require('https');
+const http = require('http');
+const util = require('util');
 
-var httpsOptions = [
+const httpsOptions = [
     'pfx',
     'key',
     'passphrase',
@@ -18,11 +19,11 @@ var httpsOptions = [
     'checkServerIdentity'
 ];
 
-var bom = [239, 187, 191];
-var colon = 58;
-var space = 32;
-var lineFeed = 10;
-var carriageReturn = 13;
+const bom = [239, 187, 191];
+const colon = 58;
+const space = 32;
+const lineFeed = 10;
+const carriageReturn = 13;
 
 function hasBom(buf) {
     return bom.every(function(charCode, index) {
@@ -38,7 +39,7 @@ function hasBom(buf) {
  * @api public
  **/
 function EventSource(url, eventSourceInitDict) {
-    var readyState = EventSource.CONNECTING;
+    let readyState = EventSource.CONNECTING;
     Object.defineProperty(this, 'readyState', {
         get: function() {
             return readyState;
@@ -51,7 +52,7 @@ function EventSource(url, eventSourceInitDict) {
         }
     });
 
-    var self = this;
+    const self = this;
     self.reconnectInterval = 1000;
 
     function onConnectionClosed(message) {
@@ -73,8 +74,8 @@ function EventSource(url, eventSourceInitDict) {
         }, self.reconnectInterval);
     }
 
-    var req;
-    var lastEventId = '';
+    let req;
+    let lastEventId = '';
     if (
         eventSourceInitDict &&
         eventSourceInitDict.headers &&
@@ -84,23 +85,23 @@ function EventSource(url, eventSourceInitDict) {
         delete eventSourceInitDict.headers['Last-Event-ID'];
     }
 
-    var discardTrailingNewline = false;
-    var data = '';
-    var eventName = '';
+    let discardTrailingNewline = false;
+    let data = '';
+    let eventName = '';
 
     var reconnectUrl = null;
 
     function connect() {
-        var options = parse(url);
-        var isSecure = options.protocol === 'https:';
+        const options = parse(url);
+        let isSecure = options.protocol === 'https:';
         options.headers = {
             'Cache-Control': 'no-cache',
             Accept: 'text/event-stream'
         };
         if (lastEventId) options.headers['Last-Event-ID'] = lastEventId;
         if (eventSourceInitDict && eventSourceInitDict.headers) {
-            for (var i in eventSourceInitDict.headers) {
-                var header = eventSourceInitDict.headers[i];
+            for (const i in eventSourceInitDict.headers) {
+                const header = eventSourceInitDict.headers[i];
                 if (header) {
                     options.headers[i] = header;
                 }
@@ -115,9 +116,9 @@ function EventSource(url, eventSourceInitDict) {
 
         // If specify http proxy, make the request to sent to the proxy server,
         // and include the original url in path and Host headers
-        var useProxy = eventSourceInitDict && eventSourceInitDict.proxy;
+        const useProxy = eventSourceInitDict && eventSourceInitDict.proxy;
         if (useProxy) {
-            var proxy = parse(eventSourceInitDict.proxy);
+            const proxy = parse(eventSourceInitDict.proxy);
             isSecure = proxy.protocol === 'https:';
 
             options.protocol = isSecure ? 'https:' : 'http:';
@@ -130,12 +131,12 @@ function EventSource(url, eventSourceInitDict) {
 
         // If https options are specified, merge them into the request options
         if (eventSourceInitDict && eventSourceInitDict.https) {
-            for (var optName in eventSourceInitDict.https) {
+            for (const optName in eventSourceInitDict.https) {
                 if (httpsOptions.indexOf(optName) === -1) {
                     continue;
                 }
 
-                var option = eventSourceInitDict.https[optName];
+                const option = eventSourceInitDict.https[optName];
                 if (option !== undefined) {
                     options[optName] = option;
                 }
@@ -216,8 +217,8 @@ function EventSource(url, eventSourceInitDict) {
 
             // text/event-stream parser adapted from webkit's
             // Source/WebCore/page/EventSource.cpp
-            var isFirst = true;
-            var buf;
+            let isFirst = true;
+            let buf;
             res.on('data', function(chunk) {
                 buf = buf ? Buffer.concat([buf, chunk]) : chunk;
                 if (isFirst && hasBom(buf)) {
@@ -225,8 +226,8 @@ function EventSource(url, eventSourceInitDict) {
                 }
 
                 isFirst = false;
-                var pos = 0;
-                var length = buf.length;
+                let pos = 0;
+                const length = buf.length;
 
                 while (pos < length) {
                     if (discardTrailingNewline) {
@@ -236,11 +237,11 @@ function EventSource(url, eventSourceInitDict) {
                         discardTrailingNewline = false;
                     }
 
-                    var lineLength = -1;
-                    var fieldLength = -1;
+                    let lineLength = -1;
+                    let fieldLength = -1;
                     var c;
 
-                    for (var i = pos; lineLength < 0 && i < length; ++i) {
+                    for (let i = pos; lineLength < 0 && i < length; ++i) {
                         c = buf[i];
                         if (c === colon) {
                             if (fieldLength < 0) {
@@ -297,7 +298,7 @@ function EventSource(url, eventSourceInitDict) {
     function parseEventStreamLine(buf, pos, fieldLength, lineLength) {
         if (lineLength === 0) {
             if (data.length > 0) {
-                var type = eventName || 'message';
+                const type = eventName || 'message';
                 _emit(
                     type,
                     new MessageEvent(type, {
@@ -310,9 +311,9 @@ function EventSource(url, eventSourceInitDict) {
             }
             eventName = void 0;
         } else if (fieldLength > 0) {
-            var noValue = fieldLength < 0;
-            var step = 0;
-            var field = buf
+            const noValue = fieldLength < 0;
+            let step = 0;
+            const field = buf
                 .slice(pos, pos + (noValue ? lineLength : fieldLength))
                 .toString();
 
@@ -325,8 +326,8 @@ function EventSource(url, eventSourceInitDict) {
             }
             pos += step;
 
-            var valueLength = lineLength - step;
-            var value = buf.slice(pos, pos + valueLength).toString();
+            const valueLength = lineLength - step;
+            const value = buf.slice(pos, pos + valueLength).toString();
 
             if (field === 'data') {
                 data += value + '\n';
@@ -335,7 +336,7 @@ function EventSource(url, eventSourceInitDict) {
             } else if (field === 'id') {
                 lastEventId = value;
             } else if (field === 'retry') {
-                var retry = parseInt(value, 10);
+                const retry = parseInt(value, 10);
                 if (!Number.isNaN(retry)) {
                     self.reconnectInterval = retry;
                 }
@@ -358,7 +359,7 @@ EventSource.prototype.constructor = EventSource; // make stacktraces readable
          * @api private
          */
         get: function get() {
-            var listener = this.listeners(method)[0];
+            const listener = this.listeners(method)[0];
             return listener
                 ? listener._listener
                     ? listener._listener
@@ -472,7 +473,7 @@ function Event(type, optionalProperties) {
         enumerable: true
     });
     if (optionalProperties) {
-        for (var f in optionalProperties) {
+        for (const f in optionalProperties) {
             if (optionalProperties.hasOwnProperty(f)) {
                 Object.defineProperty(this, f, {
                     writable: false,
@@ -496,7 +497,7 @@ function MessageEvent(type, eventInitDict) {
         value: type,
         enumerable: true
     });
-    for (var f in eventInitDict) {
+    for (const f in eventInitDict) {
         if (eventInitDict.hasOwnProperty(f)) {
             Object.defineProperty(this, f, {
                 writable: false,

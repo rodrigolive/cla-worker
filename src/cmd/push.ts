@@ -32,7 +32,7 @@ module.exports = new class implements yargs.CommandModule {
         app.build({ argv });
 
         const filepath = argv.file;
-        const filekey  = argv.key;
+        const filekey = argv.key;
 
         const pubsub = new PubSub({
             baseURL: argv.url,
@@ -81,4 +81,3 @@ module.exports = new class implements yargs.CommandModule {
         }
     }
 }();
-

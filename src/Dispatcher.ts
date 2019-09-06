@@ -95,7 +95,7 @@ export default class Dispatcher {
         err = `during command ${this.cmd}: ${err}`;
         app.error(err);
 
-        let result = {
+        const result = {
             ret: err,
             rc: 99,
             output: err
@@ -105,7 +105,7 @@ export default class Dispatcher {
     }
 
     cmdCapable({ tags }) {
-        const myTags: string[] = app.config.tags || [];
+        const myTags: string[] | string = app.config.tags || [];
 
         if (tags.every(_ => myTags.includes(_))) {
             this.pubsub.publish('worker.capable.reply', {
@@ -118,7 +118,7 @@ export default class Dispatcher {
 
     async cmdEval({ code, stash }) {
         const { pubsub } = this;
-        let result: EvalResult = { output: '' };
+        const result: EvalResult = { output: '' };
 
         const consoleWrapper = {
             log: (...args) => {
@@ -153,7 +153,7 @@ export default class Dispatcher {
 
         if (length(this.message.chdir)) cmdOpts.cwd = this.message.chdir;
         if (!cmdArgs.length) cmdOpts.shell = true;
-        if(cmdName==null) throw "Missing command";
+        if (cmdName == null) throw 'Missing command';
 
         app.debug(
             'Running cmd=%s, args=%s, opts=%s',
@@ -189,7 +189,7 @@ export default class Dispatcher {
         });
 
         proc.on('close', code => {
-            let result = {
+            const result = {
                 ret: '',
                 rc: code,
                 output: output
@@ -269,7 +269,7 @@ export default class Dispatcher {
             const tmpfile = [filepath, filekey, 'temp'].join('.');
             app.debug('creating temporary file %s', tmpfile);
 
-            let stream = fs.createWriteStream(tmpfile, { flags: 'w' });
+            const stream = fs.createWriteStream(tmpfile, { flags: 'w' });
 
             stream.on('error', err => {
                 lastError = err.toString();

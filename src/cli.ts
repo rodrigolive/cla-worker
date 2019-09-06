@@ -1,8 +1,6 @@
-const moduleAlias = require('module-alias');
-const path = require('path');
-const fs = require('fs');
-const debug = require('debug')('claw:main');
-const homedir = require('os').homedir();
+import * as moduleAlias from 'module-alias';
+import * as path from 'path';
+import * as os from 'os';
 
 const appRoot = path.resolve(__dirname, '..');
 const { version } = require('../package.json');

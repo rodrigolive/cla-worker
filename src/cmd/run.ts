@@ -34,8 +34,10 @@ class CmdRun implements yargs.CommandModule {
 
         const { id, daemon, logfile, pidfile } = app.config;
 
-        if( id == null ) {
-            app.fail('workerid is not defined, please set --id [workerid] or configure your cla-worker.yml file');
+        if (id == null) {
+            app.fail(
+                'workerid is not defined, please set --id [workerid] or configure your cla-worker.yml file'
+            );
         }
 
         const isFork = !!process.env['CLA_WORKER_FORKED'];
@@ -103,15 +105,14 @@ class CmdRun implements yargs.CommandModule {
                     );
                 } else {
                     app.error(
-                        `could not connect to server: ${err.status||''} ${
-                            err.message||''
-                        }: ${err.warning||''}`
+                        `could not connect to server: ${err.status ||
+                            ''} ${err.message || ''}: ${err.warning || ''}`
                     );
                 }
                 process.exit(1);
             }
 
-            var disposePubSub = pubsub.subscribe(
+            const disposePubSub = pubsub.subscribe(
                 [
                     'worker.put_file',
                     'worker.get_file',

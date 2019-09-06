@@ -1,6 +1,5 @@
 import app from '@claw/app';
 import * as yargs from 'yargs';
-import PubSub from '@claw/pubsub';
 import { actionService } from '@claw/service';
 
 module.exports = new class implements yargs.CommandModule {
@@ -14,7 +13,7 @@ module.exports = new class implements yargs.CommandModule {
     async handler(argv: yargs.Arguments) {
         app.build({ argv });
 
-        actionService( 'status' );
+        actionService('status');
 
         try {
             await app.startup();

@@ -2,7 +2,6 @@ import app from '@claw/app';
 import * as yargs from 'yargs';
 import PubSub from '@claw/pubsub';
 import { commonOptions, CmdArgs } from '@claw/commands';
-import Dispatcher from '@claw/Dispatcher';
 
 module.exports = new class implements yargs.CommandModule {
     command = 'register';

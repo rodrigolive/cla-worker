@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as YAML from 'js-yaml';
-import * as yargs from 'yargs';
 
 import { Logger } from '@claw/types';
 import ConsoleLogger from '@claw/util/logger';
@@ -25,8 +24,8 @@ class AppConfig {
     logfile: string;
     pidfile: string;
     registrations: Registration[];
-    tags: string[];
-    envs: string[];
+    tags: string[] | string;
+    envs: string[] | string;
 }
 
 class App extends EventEmitter {
@@ -35,7 +34,7 @@ class App extends EventEmitter {
     commandName: string;
     logger: Logger = new ConsoleLogger();
     env: string; // TODO this concept does not fit well here
-    DEBUG: number = 0;
+    DEBUG = 0;
     version: string = packageJson.version;
 
     build({ argv, logger }: { argv: CmdArgs; logger?: Logger }) {
@@ -76,7 +75,7 @@ class App extends EventEmitter {
     }
 
     configure(argv) {
-        let [configData] = this.loadConfigFile(argv.config);
+        const [configData] = this.loadConfigFile(argv.config);
 
         const config = {
             ...this.config,
@@ -89,6 +88,12 @@ class App extends EventEmitter {
             config.tags = config.tags.split(',');
         } else if (!Array.isArray(config.tags)) {
             config.tags = [];
+        }
+
+        if (typeof config.envs === 'string') {
+            config.envs = config.envs.split(',');
+        } else if (!Array.isArray(config.envs)) {
+            config.envs = [];
         }
 
         const { registrations } = config;
@@ -120,9 +125,9 @@ class App extends EventEmitter {
         ];
     }
 
-    loadConfigFile(argvConfig): any[] {
+    loadConfigFile(argvConfig): [AppConfig,string] {
         if (!argvConfig) {
-            return [{}];
+            return [new AppConfig(),''];
         }
 
         const configCandidates: string[] = this.configCandidates(argvConfig);
@@ -223,7 +228,7 @@ class App extends EventEmitter {
         const { logfile, pidfile } = this.config;
 
         fs.writeFileSync(pidfile, `${process.pid}\n`);
-        var access = fs.createWriteStream(logfile);
+        const access = fs.createWriteStream(logfile);
         process.stdout.write = process.stderr.write = access.write.bind(access);
     }
 

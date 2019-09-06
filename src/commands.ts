@@ -2,10 +2,10 @@ import * as yargs from 'yargs';
 import { origin } from '@claw/common';
 
 export interface CmdArgs extends yargs.Arguments {
-    id?:string;
+    id?: string;
     token?: string;
     passkey?: string;
-    config?: string|boolean;
+    config?: string | boolean;
     tags?: string;
     verbose?: boolean | number;
 }
@@ -80,4 +80,3 @@ export function commonOptions(args: yargs.Argv, ...options) {
 
     return args;
 }
-
