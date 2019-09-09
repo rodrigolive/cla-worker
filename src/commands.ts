@@ -51,6 +51,7 @@ const commons = {
         describe: 'path to daemon pid file'
     },
     tags: {
+        alias: 'tag',
         type: 'array',
         describe: 'set the worker tags'
     },

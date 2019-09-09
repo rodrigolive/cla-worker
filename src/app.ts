@@ -84,17 +84,8 @@ class App extends EventEmitter {
 
         Object.keys(argv).map(key => (config[key] = argv[key]));
 
-        if (typeof config.tags === 'string') {
-            config.tags = config.tags.split(',');
-        } else if (!Array.isArray(config.tags)) {
-            config.tags = [];
-        }
-
-        if (typeof config.envs === 'string') {
-            config.envs = config.envs.split(',');
-        } else if (!Array.isArray(config.envs)) {
-            config.envs = [];
-        }
+        config.tags = this.makeArray(config, 'tags', 'tag');
+        config.envs = this.makeArray(config, 'envs', 'env');
 
         const { registrations } = config;
 
@@ -125,9 +116,9 @@ class App extends EventEmitter {
         ];
     }
 
-    loadConfigFile(argvConfig): [AppConfig,string] {
-        if (!argvConfig) {
-            return [new AppConfig(),''];
+    loadConfigFile(argvConfig): [AppConfig, string] {
+        if (argvConfig !== undefined && !argvConfig) {
+            return [new AppConfig(), ''];
         }
 
         const configCandidates: string[] = this.configCandidates(argvConfig);
@@ -222,6 +213,23 @@ class App extends EventEmitter {
 
     loadPlugins() {
         /// TODO load all plugin code
+    }
+
+    makeArray(config: AppConfig, keys: string, key?: string) {
+        let arr: string[];
+
+        if (config[keys] == null && config[key]) {
+            arr =
+                config[key] === 'string' ? config[key].split(',') : config[key];
+        } else {
+            arr =
+                config[keys] === 'string'
+                    ? config[keys].split(',')
+                    : config[keys];
+        }
+
+        this.debug(keys, arr);
+        return arr;
     }
 
     daemonize() {
