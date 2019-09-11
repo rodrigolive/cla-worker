@@ -10,7 +10,7 @@ module.exports = new class implements yargs.CommandModule {
     describe = 'install the Clarive Worker service';
 
     builder(args: yargs.Argv) {
-        commonOptions(args, 'workerid', 'api_key');
+        commonOptions(args, 'workerid', 'token');
         return args;
     }
 

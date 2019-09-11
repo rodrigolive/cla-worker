@@ -18,6 +18,7 @@ module.exports = new class implements yargs.CommandModule {
 
     builder(args: yargs.Argv) {
         commonOptions(args, 'verbose', 'api-key', 'url');
+        args.hide('true');
         args.option('file', {
             describe: 'optional output file'
         });

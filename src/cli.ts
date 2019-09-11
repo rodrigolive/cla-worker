@@ -17,6 +17,7 @@ const yargs = require('yargs').commandDir(path.join(__dirname, '../src/cmd'), {
 
 yargs
     .usage('Usage: $0 <command> [options]')
+    .env('CLA_WORKER')
     .recommendCommands()
     .version(version)
     .demandCommand(1)

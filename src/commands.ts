@@ -47,7 +47,6 @@ const commons = {
         describe: 'path to log file'
     },
     pidfile: {
-        default: `${process.cwd()}/cla-worker.pid`,
         describe: 'path to daemon pid file'
     },
     tags: {

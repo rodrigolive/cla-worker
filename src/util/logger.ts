@@ -2,9 +2,12 @@ import * as colors from 'colors';
 require('colors'); // otherwise we get "undefined" messages
 
 import { Logger, LogMessage } from '@claw/types';
+import { isForked } from '@claw/common';
 
 export default class ConsoleLogger implements Logger {
-    printer: (...any) => void = console.error;
+    printer: (...any) => void = isForked()
+        ? (...args) => console.error(new Date(), ...args)
+        : console.error;
 
     dump(msg: LogMessage): string {
         return typeof msg === 'object' && !(msg instanceof Error)
