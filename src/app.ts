@@ -125,32 +125,36 @@ class App extends EventEmitter {
     }
 
     loadConfigFile(argvConfig): [AppConfig, string] {
-        if (argvConfig !== undefined && !argvConfig) {
-            return [new AppConfig(), ''];
-        }
+        if (argvConfig === undefined || argvConfig) {
+            const configCandidates: string[] = this.configCandidates(
+                argvConfig
+            );
 
-        const configCandidates: string[] = this.configCandidates(argvConfig);
+            for (const configPath of configCandidates.filter(
+                it => it != null
+            )) {
+                this.debug(`checking for config file at ${configPath}...`);
 
-        for (const configPath of configCandidates.filter(it => it != null)) {
-            this.debug(`checking for config file at ${configPath}...`);
+                if (!fs.existsSync(configPath)) {
+                    if (configPath === argvConfig) {
+                        throw `invalid config file '${configPath}'`;
+                    } else {
+                        continue;
+                    }
+                }
 
-            if (!fs.existsSync(configPath)) {
-                if (configPath === argvConfig) {
-                    throw `invalid config file '${configPath}'`;
-                } else {
-                    continue;
+                this.debug(`found ${configPath}, loading...`);
+
+                try {
+                    const baseFile = fs.readFileSync(configPath, 'utf8');
+                    return [YAML.safeLoad(baseFile), configPath];
+                } catch (err) {
+                    throw `failed to load config file ${configPath}: ${err}`;
                 }
             }
-
-            this.debug(`found ${configPath}, loading...`);
-
-            try {
-                const baseFile = fs.readFileSync(configPath, 'utf8');
-                return [YAML.safeLoad(baseFile), configPath];
-            } catch (err) {
-                throw `failed to load config file ${configPath}: ${err}`;
-            }
         }
+
+        return [new AppConfig(), ''];
     }
 
     saveConfigFile(data) {
@@ -287,7 +291,7 @@ class App extends EventEmitter {
 
     getPid(pidfile): number {
         if (!pidfile) {
-            this.fail('no pidfile available');
+            this.fail('missing pidfile');
         }
 
         if (!fs.existsSync(pidfile)) {
@@ -307,7 +311,9 @@ class App extends EventEmitter {
             process.kill(pid, 15);
             this.info(`killed daemon with pid=${pid}`);
         } catch (err) {
-            this.warn(`process pid=${pid} is not available`);
+            this.warn(
+                `process pid=${pid} is not running or cannot be killed (SIG 15)`
+            );
         }
 
         try {
