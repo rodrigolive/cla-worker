@@ -7,7 +7,7 @@ import { runner } from '@claw/runner';
 
 module.exports = new class implements yargs.CommandModule {
     command = 'start';
-    describe = 'start the Clarive Worker service';
+    describe = 'Start the worker in the background';
 
     builder(args: yargs.Argv) {
         commonOptions(

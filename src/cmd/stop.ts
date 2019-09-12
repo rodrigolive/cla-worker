@@ -6,7 +6,7 @@ import * as fs from 'fs';
 
 module.exports = new class implements yargs.CommandModule {
     command = 'stop';
-    describe = 'stop the Clarive Worker service';
+    describe = 'Stop workers running in the background';
 
     builder(args: yargs.Argv) {
         commonOptions(args, 'verbose', 'config', 'pidfile', 'workerid');

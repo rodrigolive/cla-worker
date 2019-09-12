@@ -15,7 +15,7 @@ interface Args extends CmdArgs {
 
 module.exports = new class implements yargs.CommandModule {
     command = 'push';
-    describe = 'push file to server';
+    describe = undefined; // 'Push file to server';
 
     builder(args: yargs.Argv) {
         commonOptions(args, 'verbose', 'api-key', 'url');
