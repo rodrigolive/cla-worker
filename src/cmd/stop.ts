@@ -1,8 +1,6 @@
 import app from '@claw/app';
 import * as yargs from 'yargs';
-import { commonOptions, CmdArgs } from '@claw/commands';
-import { actionService } from '@claw/service';
-import * as fs from 'fs';
+import { commonOptions } from '@claw/commands';
 
 module.exports = new class implements yargs.CommandModule {
     command = 'stop';
@@ -27,7 +25,6 @@ module.exports = new class implements yargs.CommandModule {
             await app.startup();
 
             app.killDaemon(pidfile);
-
         } catch (err) {
             app.debug(err);
             app.fail('command "stop": %s', err);

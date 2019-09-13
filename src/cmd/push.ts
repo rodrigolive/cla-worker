@@ -1,10 +1,8 @@
 import app from '@claw/app';
 import * as yargs from 'yargs';
 import * as fs from 'fs';
-import * as path from 'path';
 import PubSub from '@claw/pubsub';
 import { commonOptions, CmdArgs } from '@claw/commands';
-import { Writable } from 'stream';
 
 interface Args extends CmdArgs {
     key: string;

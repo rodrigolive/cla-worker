@@ -1,6 +1,5 @@
 import * as moduleAlias from 'module-alias';
 import * as path from 'path';
-import * as os from 'os';
 
 const appRoot = path.resolve(__dirname, '..');
 const { version } = require('../package.json');

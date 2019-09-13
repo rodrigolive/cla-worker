@@ -3,8 +3,16 @@ import * as os from 'os';
 
 const execSync = require('child_process').execSync;
 
-// const service = require('os-service');
-const service = { add: (...opts) => {}, remove: (...opts) => {} };
+// TODO find a suitable service install method: const service = require('os-service');
+
+const service = {
+    add: (...opts) => {
+        app.debug(opts);
+    },
+    remove: (...opts) => {
+        app.debug(opts);
+    }
+};
 
 export interface Result {
     stdout: string;
@@ -87,7 +95,7 @@ export function actionService(action) {
     }
 }
 
-export function removeService(options) {
+export function removeService() {
     if (isRoot()) {
         service.remove('claw', error => {
             if (error) console.trace(error);

@@ -86,7 +86,7 @@ module.exports = new class implements yargs.CommandModule {
                 stream = new Writable({
                     write: (data, _, done) => {
                         const [key, msg] = data;
-                        app.debug('got data', data);
+                        app.debug(`got key=${key} msg=`, msg);
                         done();
                     }
                 });

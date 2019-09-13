@@ -1,7 +1,6 @@
 import app from '@claw/app';
 import * as yargs from 'yargs';
-import { commonOptions, CmdArgs } from '@claw/commands';
-import { actionService } from '@claw/service';
+import { commonOptions } from '@claw/commands';
 import { isForked } from '@claw/common';
 import { runner } from '@claw/runner';
 
@@ -31,7 +30,7 @@ module.exports = new class implements yargs.CommandModule {
         await app.startup();
         app.debug('cla-worker loaded config: ', app.config);
 
-        const { id, logfile, pidfile } = app.config;
+        const { id } = app.config;
 
         if (id == null) {
             app.fail(
@@ -46,7 +45,7 @@ module.exports = new class implements yargs.CommandModule {
             if (isForked()) {
                 app.daemonize();
             }
-            runner(argv);
+            runner();
         }
     }
-}
+}();

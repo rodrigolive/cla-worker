@@ -41,7 +41,7 @@ export default class ConsoleLogger implements Logger {
     error(msg: LogMessage, ...args): void {
         msg = this.dump(msg);
         this.printer(
-            `[error] ${msg.bold}`.red,
+            `✘ ${msg.bold}`.red,
             ...args.map(arg => this.dump(arg))
         );
     }

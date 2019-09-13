@@ -271,7 +271,7 @@ class App extends EventEmitter {
 
         const isNode = process.argv[0] === 'node' ? true : false;
 
-        let cmd = process.argv[isNode ? 1 : 0],
+        const cmd = process.argv[isNode ? 1 : 0],
             args = process.argv.slice(isNode ? 2 : 1);
 
         this.debug(`cmd=${cmd}`);

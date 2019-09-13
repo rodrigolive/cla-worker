@@ -309,6 +309,7 @@ export default class PubSub {
                 url: this.address('/pubsub/close'),
                 data: { id: this.id, token: this.token }
             });
+            app.debug(res);
         } catch (err) {
             app.debug('pubsub close request failed');
         }

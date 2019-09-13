@@ -5,24 +5,24 @@
     "main": "src/cli.js",
     "scripts": {
         "test": "jest",
-        "build": "rimraf ./dist && tsc && cp -R package.json bin ./dist/ && find src -name '*.js' -exec cp {} dist/{} \\; && cd ./dist && pkg bin/cla-worker -t node10-win,node10-linux,node10-macos -c package.json && cd .. && find ./dist/ -name '*.j*' -exec rm {} \\;",
-        "package": "npm run build && cd dist && tar cvzf cla-worker-latest.tgz cla-worker-*",
+        "build": "rimraf ./dist && tsc && cp -R package.json bin ./dist/ && find src -name '*.js' -exec cp {} dist/{} \\; && cd ./dist && pkg bin/cla-worker -t node12-win-x64,node12-linux-x64,node12-macos-x64 -c package.json && cd .. && find ./dist/ -name '*.j*' -exec rm {} \\;",
+        "package": "npm run build && cd dist && mkdir cla-worker && mv cla-worker-* cla-worker && tar cvzf cla-worker-latest.tgz cla-worker && zip -r cla-worker.zip cla-worker",
         "build-watch": "tsc -w",
         "test-watch": "npx jest --watchAll",
         "docs": "gitbook build docs ../cla-worker-docs",
         "pretty": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
-        "lint": "eslint 'src/**' --strict"
+        "lint": "eslint 'src/**'"
     },
     "bin": "bin/cla-worker",
     "engines": {
-        "node": ">=10"
+        "node": ">=11"
     },
     "pkg": {
         "assets": [
             "./src/**"
         ],
         "targets": [
-            "node10"
+            "node11"
         ]
     },
     "repository": {
@@ -40,10 +40,6 @@
         "url": "https://github.com/clarive/claw/issues"
     },
     "homepage": "https://github.com/clarive/claw#readme",
-    "dependenciesDev": {
-        "nodemon": "^1.17.2",
-        "pkg": "^4.3.0"
-    },
     "dependencies": {
         "axios": "^0.19.0",
         "colors": "^1.2.1",

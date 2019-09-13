@@ -2,7 +2,6 @@ import app from '@claw/app';
 import * as yargs from 'yargs';
 import PubSub from '@claw/pubsub';
 import { commonOptions } from '@claw/commands';
-import Dispatcher from '@claw/Dispatcher';
 
 module.exports = new class implements yargs.CommandModule {
     command = 'unregister';
@@ -41,6 +40,9 @@ module.exports = new class implements yargs.CommandModule {
 
             const result = await pubsub.unregister(passkey);
             const { registration, error, projects } = result;
+
+            app.debug('registration', registration);
+            app.debug('projects', projects);
 
             if (error) {
                 app.fail(`error unregistering worker: ${error}`);

@@ -7,8 +7,6 @@ import * as vm from 'vm';
 import { length } from '@claw/common';
 import PubSub from '@claw/pubsub';
 
-import { Writable } from 'stream';
-
 const fsAsync = {
     rename: util.promisify(fs.rename)
 };
@@ -290,7 +288,7 @@ export default class Dispatcher {
                 });
             });
 
-            onError.push(err => {
+            onError.push(() => {
                 if (fs.existsSync(tmpfile)) fs.unlinkSync(tmpfile);
             });
 

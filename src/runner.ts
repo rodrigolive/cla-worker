@@ -1,9 +1,8 @@
 import app from '@claw/app';
-import { CmdArgs } from '@claw/commands';
 import PubSub from '@claw/pubsub';
 import Dispatcher from '@claw/Dispatcher';
 
-export const runner = async (argv: CmdArgs) => {
+export const runner = async () => {
     const { id, url, token, tags, envs } = app.config;
 
     try {
@@ -38,7 +37,8 @@ export const runner = async (argv: CmdArgs) => {
             } else {
                 app.error(
                     `could not connect to server: ${err.status ||
-                        ''} ${err.message || ''}: ${err.warning || ''}`
+                        ''} ${err.message || ''}: ${err.warning ||
+                        'server not available or server address not found'}`
                 );
             }
             process.exit(1);
@@ -74,6 +74,8 @@ export const runner = async (argv: CmdArgs) => {
                 }
             },
             err => {
+                app.debug(err);
+
                 const msg = err.message
                     ? `${err.message} (code: ${err.status})`
                     : 'server not available';
@@ -83,6 +85,10 @@ export const runner = async (argv: CmdArgs) => {
                 );
             }
         );
+
+        app.on('exit', () => {
+            disposePubSub();
+        });
     } catch (err) {
         app.debug(err);
         app.fail('command %s: %s', app.commandName, err);

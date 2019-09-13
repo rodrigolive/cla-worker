@@ -31,7 +31,7 @@ class CmdRun implements yargs.CommandModule {
         await app.startup();
         app.debug('cla-worker loaded config: ', app.config);
 
-        const { id, daemon, logfile, pidfile } = app.config;
+        const { id, daemon } = app.config;
 
         if (id == null) {
             app.fail(
@@ -46,10 +46,9 @@ class CmdRun implements yargs.CommandModule {
             if (isForked()) {
                 app.daemonize();
             }
-            runner(argv);
+            runner();
         }
     }
-
 }
 
 module.exports = new CmdRun();
