@@ -28,3 +28,11 @@ export const workerid = () =>
 
 export const origin = () =>
     `${os.userInfo().username}@${os.hostname()}/${process.pid}`;
+
+export const sleep = (t: number): Promise<number> => {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(t);
+        }, t);
+    });
+};
