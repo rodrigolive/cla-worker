@@ -52,6 +52,7 @@ export const runner = async () => {
                 'worker.eval',
                 'worker.ready',
                 'worker.shutdown',
+                'worker.file_exists',
                 'worker.capable'
             ],
             async (eventName, eventData, eventFind, oid) => {
