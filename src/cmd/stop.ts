@@ -24,7 +24,7 @@ module.exports = new class implements yargs.CommandModule {
         try {
             await app.startup();
 
-            app.killDaemon(pidfile);
+            await app.killDaemon(pidfile);
         } catch (err) {
             app.debug(err);
             app.fail('command "stop": %s', err);
