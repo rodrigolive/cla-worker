@@ -1,6 +1,7 @@
 import app from '@claw/app';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as util from 'util';
 import * as vm from 'vm';
 
@@ -68,6 +69,9 @@ export default class Dispatcher {
                 case 'worker.capable':
                     this.cmdCapable(this.message);
                     break;
+                case 'worker.file_exists':
+                    this.cmdFileExists(this.message);
+                    break;
                 case 'worker.exec':
                     await this.cmdExec(this.message);
                     break;
@@ -112,6 +116,18 @@ export default class Dispatcher {
                 tags: myTags
             });
         }
+    }
+
+    cmdFileExists({ path }) {
+        const myTags: string[] | string = app.config.tags || [];
+
+        const exists = fs.existsSync(path);
+
+        this.pubsub.publish('worker.file_exists.reply', {
+            oid: this.msgId,
+            workerid: this.pubsub.id,
+            exists: exists ? 1 : 0
+        });
     }
 
     async cmdEval({ code, stash }) {
@@ -266,6 +282,11 @@ export default class Dispatcher {
         try {
             const tmpfile = [filepath, filekey, 'temp'].join('.');
             app.debug('creating temporary file %s', tmpfile);
+            const tmpdir = path.dirname(tmpfile);
+
+            if (!fs.existsSync(tmpdir)) {
+                await fs.promises.mkdir(tmpdir, { recursive: true });
+            }
 
             const stream = fs.createWriteStream(tmpfile, { flags: 'w' });
 

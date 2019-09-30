@@ -1,7 +1,7 @@
 import app from '@claw/app';
 import * as EventSource from '@claw/util/eventsource';
 import { Writable, Readable } from 'stream';
-import { origin, workerid } from '@claw/common';
+import { origin, workerid, sleep } from '@claw/common';
 import { URL, URLSearchParams } from 'url';
 
 import axios from 'axios';
@@ -334,13 +334,30 @@ export default class PubSub {
 
     async publish(key: string, data: any) {
         try {
-            const response = await axios({
-                method: 'POST',
-                url: this.address('/pubsub/publish'),
-                data: { event: key, ...data }
-            });
+            let response;
+            let maxTries = 10;
+            let waitTime = 1000;
 
-            app.debug(`pubsub published event=${key}`, data);
+            // make it resillient to server restarts, comm failures
+            while (maxTries--) {
+                try {
+                    response = await axios({
+                        method: 'POST',
+                        url: this.address('/pubsub/publish'),
+                        data: { event: key, ...data }
+                    });
+
+                    break;
+                } catch (err) {
+                    if (maxTries > 0) {
+                        waitTime = (await sleep(waitTime)) * 2;
+                        continue;
+                    }
+                    throw err;
+                }
+            }
+
+            app.info(`pubsub published event=${key}`, data);
 
             return response;
         } catch (error) {

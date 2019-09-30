@@ -4,7 +4,8 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as generate from 'shortid';
 
-export const isForked: () => boolean = () => !!process.env['CLARIVE_WORKER_FORKED'];
+export const isForked: () => boolean = () =>
+    !!process.env['CLARIVE_WORKER_FORKED'];
 
 export const length = arg => {
     return arg !== undefined && arg !== null && arg.length > 0;
@@ -27,3 +28,11 @@ export const workerid = () =>
 
 export const origin = () =>
     `${os.userInfo().username}@${os.hostname()}/${process.pid}`;
+
+export const sleep = (t: number): Promise<number> => {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(t);
+        }, t);
+    });
+};
