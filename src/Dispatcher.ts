@@ -119,8 +119,6 @@ export default class Dispatcher {
     }
 
     cmdFileExists({ path }) {
-        const myTags: string[] | string = app.config.tags || [];
-
         const exists = fs.existsSync(path);
 
         this.pubsub.publish('worker.file_exists.reply', {
