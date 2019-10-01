@@ -14,7 +14,6 @@ module.exports = new class implements yargs.CommandModule {
             'passkey',
             'url',
             'workerid',
-            'tags',
             'envs',
             'origin',
             'save',
