@@ -32,6 +32,7 @@ class App extends EventEmitter {
     argv: CmdArgs;
     config: AppConfig;
     commandName: string;
+    configFile: string;
     logger: Logger = new ConsoleLogger();
     env: string; // TODO this concept does not fit well here
     DEBUG = 0;
@@ -75,7 +76,12 @@ class App extends EventEmitter {
     }
 
     configure(argv) {
-        const [configData] = this.loadConfigFile(argv.config);
+        const [configData, configFile] = this.loadConfigFile(
+            argv.config,
+            argv.save
+        );
+
+        this.configFile = configFile;
 
         const config = {
             ...this.config,
@@ -121,21 +127,20 @@ class App extends EventEmitter {
             path.join(CLA_WORKER_HOME, './cla-worker.yml'),
             path.join(process.env.HOME, './cla-worker.yml'),
             path.join('/etc/cla-worker.yml')
-        ];
+        ].filter(it => it != null && typeof it !== 'boolean');
     }
 
-    loadConfigFile(argvConfig): [AppConfig, string] {
-        if (argvConfig === undefined || argvConfig) {
-            const configCandidates: string[] = this.configCandidates(
-                argvConfig
-            );
+    loadConfigFile(
+        argvConfig: string | boolean,
+        newFile: boolean = false
+    ): [AppConfig, string] {
+        const configCandidates: string[] = this.configCandidates(argvConfig);
 
-            for (const configPath of configCandidates.filter(
-                it => it != null
-            )) {
+        if (!newFile) {
+            for (const configPath of configCandidates) {
                 this.debug(`checking for config file at ${configPath}...`);
 
-                if (!fs.existsSync(configPath)) {
+                if (!fs.existsSync(configPath) && !newFile) {
                     if (configPath === argvConfig) {
                         throw `invalid config file '${configPath}'`;
                     } else {
@@ -154,18 +159,18 @@ class App extends EventEmitter {
             }
         }
 
-        return [new AppConfig(), ''];
+        return [new AppConfig(), configCandidates[0]];
     }
 
     saveConfigFile(data) {
         const [currentConfig, configPath] = this.loadConfigFile(
-            this.argv.config
+            this.configFile
         );
 
         const registrations = data.registrations;
         delete data.registrations;
 
-        const newConfig = { ...currentConfig, ...data };
+        const newConfig = { registrations: [], ...currentConfig, ...data };
 
         if (registrations) {
             const regMap = {};

@@ -7,6 +7,7 @@ export interface CmdArgs extends yargs.Arguments {
     passkey?: string;
     config?: string | boolean;
     tags?: string;
+    save?: boolean;
     verbose?: boolean | number;
 }
 
