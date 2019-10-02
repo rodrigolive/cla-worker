@@ -29,6 +29,7 @@ module.exports = new class implements yargs.CommandModule {
         try {
             await app.startup();
             const { id, url, origin, passkey, envs, tags } = app.config;
+            const { save, config } = argv;
 
             const pubsub = new PubSub({
                 id,
@@ -48,15 +49,37 @@ module.exports = new class implements yargs.CommandModule {
                 app.info('Registration WorkerID: ', pubsub.id);
                 app.info('Registration token: ', token);
                 app.info('Projects registered: ', projects);
-                app.info(`Start the worker with the following command:
+                app.info(
+                    `Start the worker with the following command:\n\n\tcla-worker run --token ${token} --id ${
+                        pubsub.id
+                    }\n`
+                );
+                if (save) {
+                    if (
+                        config &&
+                        typeof config !== 'boolean' &&
+                        config.length > 0
+                    ) {
+                        app.info(
+                            `Or with your config file:\n\n\tcla-worker run --id ${
+                                pubsub.id
+                            } --config ${config}\n`
+                        );
+                    } else {
+                        app.info(
+                            `Or from the config file:\n\n\tcla-worker run --id ${
+                                pubsub.id
+                            }\n`
+                        );
+                    }
+                }
 
-            cla-worker run --token ${token} --id ${pubsub.id}\n`);
                 app.info(`To remove this registration:
 
             cla-worker unregister --token ${token} --id ${pubsub.id}\n`);
             }
 
-            if (argv.save) {
+            if (save) {
                 app.info('saving registration to config file...');
 
                 const [configFile] = app.saveConfigFile({
