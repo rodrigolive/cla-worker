@@ -42,7 +42,7 @@
     },
     "homepage": "https://github.com/clarive/claw#readme",
     "dependencies": {
-        "axios": "^0.19.0",
+        "axios": "^0.21.1",
         "colors": "^1.2.1",
         "daemonize-process": "^1.0.9",
         "eventsource": "^1.0.7",
