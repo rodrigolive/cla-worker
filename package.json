@@ -45,7 +45,7 @@
         "axios": "^0.21.1",
         "colors": "^1.2.1",
         "daemonize-process": "^1.0.9",
-        "eventsource": "^1.0.7",
+        "eventsource": "^2.0.2",
         "js-yaml": "^3.13.1",
         "module-alias": "^2.2.0",
         "shortid": "^2.2.14",
